@@ -145,6 +145,7 @@ unsigned long NTPClient::GetCurrentEpoch()
   return epoch;
 }
 
+
 void NTPClient::PrintTime()
 {
     // print the hour, minute and second:

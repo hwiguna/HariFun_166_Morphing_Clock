@@ -52,16 +52,22 @@ void IRAM_ATTR display_updater() {
 
 //=== SEGMENTS ===
 #include "Digit.h"
-Digit digit0(&display, 0, 28 + 9, 8, display.color565(0, 0, 255));
-Digit digit1(&display, 0, 28, 8, display.color565(0, 0, 255));
-Digit digit2(&display, 0, 28 - 9, 8, display.color565(0, 0, 255));
-Digit digit3(&display, 0, 28 - 9 - 9, 8, display.color565(0, 0, 255));
+Digit digit0(&display, 0, 63 - 9, 8, display.color565(0, 0, 255));
+Digit digit1(&display, 0, 63 - 9*2, 8, display.color565(0, 0, 255));
+Digit digit2(&display, 0, 63 - 3 - 9*3, 8, display.color565(0, 0, 255));
+Digit digit3(&display, 0, 63 - 3 - 9*4, 8, display.color565(0, 0, 255));
+Digit digit4(&display, 0, 63 - 6 - 9*5, 8, display.color565(0, 0, 255));
+Digit digit5(&display, 0, 63 - 6 - 9*6, 8, display.color565(0, 0, 255));
 int changeSpeed = 500;
 
 //=== CLOCK ===
 #include "NTPClient.h"
 NTPClient ntpClient;
 unsigned long lastEpoch;
+byte prevhh;
+byte prevmm;
+byte prevss;
+
 
 void setup() {
   // put your setup code here, to run once:
@@ -82,45 +88,55 @@ void setup() {
   ntpClient.Setup();
 
   display.fillScreen(display.color565(0, 0, 0));
-  digit0.Draw(0);
-  digit1.Draw(0);
-  digit2.Draw(0);
-  digit3.Draw(0);
+  digit1.DrawColon(display.color565(0, 0, 31));
+  digit3.DrawColon(display.color565(0, 0, 31));
+//  digit0.Draw(0);
+//  digit1.Draw(0);
+//  digit2.Draw(0);
+//  digit3.Draw(0);
+//  digit4.Draw(0);
+//  digit5.Draw(0);
   delay(changeSpeed);
 }
 
 
 void loop() {
-  unsigned long epoch = ntpClient.GetCurrentEpoch();
-  Serial.print("GetCurrentEpoch returned epoch = ");
-  Serial.println(epoch);
+  unsigned long epoch = ntpClient.GetCurrentTime();
+  //Serial.print("GetCurrentTime returned epoch = ");
+  //Serial.println(epoch);
   if (epoch != 0) ntpClient.PrintTime();
 
   if (epoch != lastEpoch) {
-    byte hh = ntpClient.GetHours();
-    byte mm = ntpClient.GetMinutes();
-    byte ss = ntpClient.GetSeconds();
+    int hh = ntpClient.GetHours();
+    int mm = ntpClient.GetMinutes();
+    int ss = ntpClient.GetSeconds();
     if (lastEpoch == 0) { // If we didn't have a previous time. Just draw it without morphing.
       digit0.Draw(ss % 10);
       digit1.Draw(ss / 10);
       digit2.Draw(mm % 10);
       digit3.Draw(mm / 10);
+      digit4.Draw(hh % 10);
+      digit5.Draw(hh / 10);
     }
     else
     {
-      for (byte d = 1; d <= 10; d++) {
-        if (d == 10) {
-          digit0.Morph(0);
-          int nextTens = digit1.Value() + 1;
-          digit1.Morph(nextTens == 10 ? 0 : nextTens);
-        }
-        else
-          digit0.Morph(d);
-        delay(changeSpeed);
-      }
+      int s0 = ss % 10;
+      int s1 = ss / 10;
+      if (s0!=digit0.Value()) digit0.Morph(s0);
+      if (s1!=digit1.Value()) digit1.Morph(s1);
+
+      int m0 = mm % 10;
+      int m1 = mm / 10;
+      if (m0!=digit2.Value()) digit2.Morph(m0);
+      if (m1!=digit3.Value()) digit3.Morph(m1);
+      
+      int h0 = hh % 10;
+      int h1 = hh / 10;
+      if (h0!=digit4.Value()) digit4.Morph(h0);
+      if (h1!=digit5.Value()) digit5.Morph(h1);
     }
     lastEpoch = epoch;
   }
 
-  // delay(1000);
+  //delay(1000);
 }

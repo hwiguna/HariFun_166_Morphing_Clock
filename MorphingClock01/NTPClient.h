@@ -26,7 +26,7 @@
   public:
     NTPClient();
     void Setup();
-    unsigned long GetCurrentEpoch();
+    unsigned long GetCurrentTime();
     byte GetHours();
     byte GetMinutes();
     byte GetSeconds();

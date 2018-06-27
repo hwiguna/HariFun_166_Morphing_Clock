@@ -12,6 +12,19 @@ const int segWidth = segHeight;
 const uint16_t height = 31;
 const uint16_t width = 63;
 
+byte digitBits[] = {
+  B11111100, // 0 ABCDEF--
+  B01100000, // 1 -BC-----
+  B11011010, // 2 AB-DE-G-
+  B11110010, // 3 ABCD--G-
+  B01100110, // 4 -BC--FG-
+  B10110110, // 5 A-CD-FG-
+  B10111110, // 6 A-CDEFG-
+  B11100000, // 7 ABC-----
+  B11111110, // 8 ABCDEFG-
+  B11110110, // 9 ABCD_FG-
+};
+
 uint16_t black;
 
 Digit::Digit(PxMATRIX* d, byte value, uint16_t xo, uint16_t yo, uint16_t color) {
@@ -35,6 +48,18 @@ void Digit::drawLine(uint16_t x, uint16_t y, uint16_t x2, uint16_t y2, uint16_t 
   _display->drawLine(xOffset + x, height - (y + yOffset), xOffset + x2, height - (y2 + yOffset), c);
 }
 
+void Digit::drawFillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c)
+{
+  _display->fillRect(xOffset + x, height - (y + yOffset), w,h, c);
+}
+
+void Digit::DrawColon(uint16_t c)
+{
+  // Colon is drawn to the left of this digit
+  drawFillRect(-3, segHeight-1, 2,2, c);
+  drawFillRect(-3, segHeight+1+3, 2,2, c);
+}
+
 void Digit::drawSeg(byte seg)
 {
   switch (seg) {
@@ -49,33 +74,14 @@ void Digit::drawSeg(byte seg)
 }
 
 void Digit::Draw(byte value) {
-  switch (value) {
-    case 0: // ZERO
-      drawSeg(sA);
-      drawSeg(sB);
-      drawSeg(sC);
-      drawSeg(sD);
-      drawSeg(sE);
-      drawSeg(sF);
-      break;
-    case 1: // ONE
-      drawSeg(sB);
-      drawSeg(sC);
-      break;
-      case 2: // TWO
-      drawSeg(sA);
-      drawSeg(sB);
-      drawSeg(sD);
-      drawSeg(sE);
-      drawSeg(sG);
-      break;
-      case 4: // FOUR
-      drawSeg(sB);
-      drawSeg(sC);
-      drawSeg(sF);
-      drawSeg(sG);
-      break;
-  }
+  byte pattern = digitBits[value];
+  if (bitRead(pattern, 7)) drawSeg(sA);
+  if (bitRead(pattern, 6)) drawSeg(sB);
+  if (bitRead(pattern, 5)) drawSeg(sC);
+  if (bitRead(pattern, 4)) drawSeg(sD);
+  if (bitRead(pattern, 3)) drawSeg(sE);
+  if (bitRead(pattern, 2)) drawSeg(sF);
+  if (bitRead(pattern, 1)) drawSeg(sG);
   _value = value;
 }
 
@@ -193,6 +199,10 @@ void Digit::Morph0() {
   // ZERO
   for (int i = 0; i < segWidth; i++)
   {
+    if (_value==5) { // If 5 to 0, we also need to slide F to B
+      if (i>0) drawLine(1 + i, segHeight * 2 + 1, 1 + i, segHeight + 2, black);
+      drawLine(2 + i, segHeight * 2 + 1, 2 + i, segHeight + 2, _color);
+    }
     // Flow G into E
     drawPixel(segWidth - i, segHeight + 1, black);
     drawPixel(0, segHeight - i, _color);

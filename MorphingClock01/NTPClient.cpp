@@ -2,6 +2,8 @@
 #include <WiFiUdp.h>
 #include "NTPClient.h"
 
+#define DEBUG 0
+
 unsigned int localPort = 2390;      // local port to listen for UDP packets
 
 /* Don't hardwire the IP address or we won't get the benefits of the pool.
@@ -22,10 +24,12 @@ char pass[] = WLAN_PASS;       // your network password
 // A UDP instance to let us send and receive packets over UDP
 WiFiUDP udp;
 
-unsigned long askFrequency = 20000; // How frequent should we get current time?
+unsigned long askFrequency = 300000; // How frequent should we get current time? in miliseconds
 unsigned long timeToAsk;
 unsigned long timeToRead;
 unsigned long epoch;
+unsigned long epochTimeStamp; // What was millis() when we received last epoch?
+unsigned long currentTime;
 
 NTPClient::NTPClient()
 {
@@ -57,7 +61,7 @@ void NTPClient::Setup()
 // send an NTP request to the time server at the given address
 unsigned long NTPClient::sendNTPpacket(IPAddress& address)
 {
-  Serial.println("sending NTP packet...");
+  if (DEBUG) Serial.println("sending NTP packet...");
   // set all bytes in the buffer to 0
   memset(packetBuffer, 0, NTP_PACKET_SIZE);
   // Initialize values needed to form NTP request
@@ -81,7 +85,7 @@ unsigned long NTPClient::sendNTPpacket(IPAddress& address)
 
 void NTPClient::AskCurrentEpoch()
 {
-  Serial.println("AskCurrentEpoch called");
+  if (DEBUG) Serial.println("AskCurrentEpoch called");
   //get a random server from the pool
   WiFi.hostByName(ntpServerName, timeServerIP);
 
@@ -90,14 +94,15 @@ void NTPClient::AskCurrentEpoch()
 
 unsigned long NTPClient::ReadCurrentEpoch()
 {
-  Serial.println("ReadCurrentEpoch called");
+  if (DEBUG) Serial.println("ReadCurrentEpoch called");
   int cb = udp.parsePacket();
   if (!cb) {
-    Serial.println("no packet yet");
+    if (DEBUG) Serial.println("no packet yet");
   }
   else {
-    Serial.print("packet received, length=");
-    Serial.println(cb);
+    epochTimeStamp = millis();
+    if (DEBUG) Serial.print("packet received, length=");
+    if (DEBUG) Serial.println(cb);
     // We've received a packet, read the data from it
     udp.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
 
@@ -109,25 +114,25 @@ unsigned long NTPClient::ReadCurrentEpoch()
     // combine the four bytes (two words) into a long integer
     // this is NTP time (seconds since Jan 1 1900):
     unsigned long secsSince1900 = highWord << 16 | lowWord;
-    Serial.print("Seconds since Jan 1 1900 = " );
-    Serial.println(secsSince1900);
+    if (DEBUG) Serial.print("Seconds since Jan 1 1900 = " );
+    if (DEBUG) Serial.println(secsSince1900);
 
     // now convert NTP time into everyday time:
-    Serial.print("Unix time = ");
+    if (DEBUG) Serial.print("Unix time = ");
     // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
     const unsigned long seventyYears = 2208988800UL;
     // subtract seventy years:
-    epoch = secsSince1900 - seventyYears;
+    epoch = secsSince1900 - seventyYears; // 1530082740; // Fake 6:59:00
     // print Unix time:
-    Serial.println(epoch);
+    if (DEBUG) Serial.println(epoch);
 
     return epoch;
   }
 }
 
-unsigned long NTPClient::GetCurrentEpoch()
+unsigned long NTPClient::GetCurrentTime()
 {
-  Serial.println("GetCurrentEpoch called");
+  if (DEBUG) Serial.println("GetCurrentEpoch called");
   if (millis() > timeToAsk) { // Is it time to ask server for current time?
     if (timeToRead == 0) { // Yes. Have we asked yet?
       ReadCurrentEpoch(); // Flush out any remaining answers from previous Asks
@@ -142,27 +147,30 @@ unsigned long NTPClient::GetCurrentEpoch()
     }
   }
 
-  return epoch;
+  unsigned long elapsedMillis = millis() - epochTimeStamp;
+  currentTime = (epoch==0) ? 0 : epoch + (elapsedMillis / 1000); // If we don't have epoch yet, return zero so we won't try to display millis on the clock.
+  return currentTime;
 }
 
 
 byte NTPClient::GetHours()
 {
-  return (epoch  % 86400L) / 3600;
+  return (currentTime  % 86400L) / 3600;
 }
 
 byte NTPClient::GetMinutes()
 {
-  return (epoch  % 3600) / 60;
+  return (currentTime  % 3600) / 60;
 }
 
 byte NTPClient::GetSeconds()
 {
-  return epoch % 60;
+  return currentTime % 60;
 }
     
 void NTPClient::PrintTime()
 {
+  if (DEBUG) {
     // print the hour, minute and second:
     Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
     byte hh = GetHours();
@@ -182,5 +190,6 @@ void NTPClient::PrintTime()
       Serial.print('0');
     }
     Serial.println(ss); // print the second
+  }
 }
 
