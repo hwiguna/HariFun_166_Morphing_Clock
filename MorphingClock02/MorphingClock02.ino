@@ -1,3 +1,10 @@
+// Morphing Clock by Hari Wiguna, July 2018
+//
+// Thanks to:
+// Tzapu for WifiManager
+// Dominic Buchstaller for PxMatrix
+// Brian Lough for tutorials on the matrix and WifiManager
+
 #include <PxMatrix.h>
 
 #ifdef ESP32
@@ -52,13 +59,12 @@ void IRAM_ATTR display_updater() {
 
 //=== SEGMENTS ===
 #include "Digit.h"
-Digit digit0(&display, 0, 63 - 9, 8, display.color565(0, 0, 255));
-Digit digit1(&display, 0, 63 - 9*2, 8, display.color565(0, 0, 255));
-Digit digit2(&display, 0, 63 - 3 - 9*3, 8, display.color565(0, 0, 255));
-Digit digit3(&display, 0, 63 - 3 - 9*4, 8, display.color565(0, 0, 255));
-Digit digit4(&display, 0, 63 - 6 - 9*5, 8, display.color565(0, 0, 255));
-Digit digit5(&display, 0, 63 - 6 - 9*6, 8, display.color565(0, 0, 255));
-int changeSpeed = 500;
+Digit digit0(&display, 0, 63 - 1 - 9*1, 8, display.color565(0, 0, 255));
+Digit digit1(&display, 0, 63 - 1 - 9*2, 8, display.color565(0, 0, 255));
+Digit digit2(&display, 0, 63 - 4 - 9*3, 8, display.color565(0, 0, 255));
+Digit digit3(&display, 0, 63 - 4 - 9*4, 8, display.color565(0, 0, 255));
+Digit digit4(&display, 0, 63 - 7 - 9*5, 8, display.color565(0, 0, 255));
+Digit digit5(&display, 0, 63 - 7 - 9*6, 8, display.color565(0, 0, 255));
 
 //=== CLOCK ===
 #include "NTPClient.h"
@@ -87,8 +93,8 @@ void setup() {
   ntpClient.Setup(&display);
 
   display.fillScreen(display.color565(0, 0, 0));
-  digit1.DrawColon(display.color565(0, 0, 31));
-  digit3.DrawColon(display.color565(0, 0, 31));
+  digit1.DrawColon(display.color565(0, 0, 255));
+  digit3.DrawColon(display.color565(0, 0, 255));
 }
 
 

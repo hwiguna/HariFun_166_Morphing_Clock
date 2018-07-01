@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#include <PxMatrix.h>
+#include <PxMatrix.h> // https://github.com/2dom/PxMatrix
 
 class Digit {
   

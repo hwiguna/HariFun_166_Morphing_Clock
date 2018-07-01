@@ -2,8 +2,8 @@
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h> //https://github.com/tzapu/WiFiManager
-char wifiManagerAPName[] = "Clock";
-char wifiManagerAPPassword[] = "pencil";
+char wifiManagerAPName[] = "MorphClk";
+char wifiManagerAPPassword[] = "HariFun";
 
 
 //== DOUBLE-RESET DETECTOR ==
@@ -30,13 +30,14 @@ void saveConfigCallback () {
 #include "NTPClient.h"
 
 #define DEBUG 0
-unsigned long askFrequency = 300000; // How frequent should we get current time? in miliseconds
+unsigned long askFrequency = 300*1000; // How frequent should we get current time? in miliseconds. 360,000ms = 360s = 60m = 1h
 unsigned long timeToAsk;
 unsigned long timeToRead;
 unsigned long epoch;
 unsigned long epochTimeStamp; // What was millis() when we received last epoch?
 unsigned long currentTime;
 char timezone[5] = "";
+char military[3] = ""; // 24 hour mode? Y/N
 
 const char* ntpServerName = "time.nist.gov";
 IPAddress timeServerIP; // time.nist.gov NTP server address
@@ -85,7 +86,7 @@ bool loadConfig() {
   }
 
   strcpy(timezone, json["timezone"]);
-  //(channelId, json["channelId"]);
+  strcpy(military, json["military"]);
   return true;
 }
 
@@ -93,7 +94,7 @@ bool saveConfig() {
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
   json["timezone"] = timezone;
-  //json["channelId"] = channelId;
+  json["military"] = military;
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
@@ -103,7 +104,10 @@ bool saveConfig() {
 
   Serial.print("timezone=");
   Serial.println(timezone);
-  
+
+  Serial.print("military=");
+  Serial.println(military);
+
   json.printTo(configFile);
   return true;
 }
@@ -139,6 +143,8 @@ void NTPClient::Setup(PxMATRIX* d)
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   WiFiManagerParameter timeZoneParameter("timeZone", "Time Zone", timezone, 5); 
   wifiManager.addParameter(&timeZoneParameter);
+  WiFiManagerParameter militaryParameter("military", "24Hr", military, 3); 
+  wifiManager.addParameter(&militaryParameter);
 
   //-- Double-Reset --
   if (drd.detectDoubleReset()) {
@@ -150,7 +156,7 @@ void NTPClient::Setup(PxMATRIX* d)
     _display->print(wifiManagerAPName);
 
     _display->setCursor(0, row1);
-    _display->print("Pwd:");
+    _display->print("Pw:");
     _display->print(wifiManagerAPPassword);
 
     _display->setCursor(0, row2);
@@ -165,7 +171,7 @@ void NTPClient::Setup(PxMATRIX* d)
     Serial.println("No Double Reset Detected");
     digitalWrite(LED_BUILTIN, HIGH);
 
-    _display->setCursor(2, row0);
+    _display->setCursor(2, row1);
     _display->print("Connecting");
 
     //fetches ssid and pass from eeprom and tries to connect
@@ -175,7 +181,8 @@ void NTPClient::Setup(PxMATRIX* d)
   }
   
   //-- Status --
-  _display->setCursor(2, row1);
+  _display->fillScreen(_display->color565(0, 0, 0));
+  _display->setCursor(2, row0);
   _display->print("Connected!");
   Serial.println("WiFi connected");
   
@@ -189,9 +196,15 @@ void NTPClient::Setup(PxMATRIX* d)
 
   //-- Timezone --
   strcpy(timezone,timeZoneParameter.getValue());
-  _display->setCursor(2, row2);
+  _display->setCursor(2, row1);
   _display->print("Zone:");
   _display->print(timezone);
+  
+  //-- Military --
+  strcpy(military,militaryParameter.getValue());
+  _display->setCursor(2, row2);
+  _display->print("24Hr:");
+  _display->print(military);
 
   if (shouldSaveConfig) {
     saveConfig();
@@ -234,6 +247,7 @@ void NTPClient::AskCurrentEpoch()
   WiFi.hostByName(ntpServerName, timeServerIP);
 
   sendNTPpacket(timeServerIP); // send an NTP packet to a time server
+  epochTimeStamp = millis(); // When did we ask for time?
 }
 
 unsigned long NTPClient::ReadCurrentEpoch()
@@ -244,7 +258,7 @@ unsigned long NTPClient::ReadCurrentEpoch()
     if (DEBUG) Serial.println("no packet yet");
   }
   else {
-    epochTimeStamp = millis();
+    //epochTimeStamp = millis();
     if (DEBUG) Serial.print("packet received, length=");
     if (DEBUG) Serial.println(cb);
     // We've received a packet, read the data from it
@@ -303,10 +317,11 @@ unsigned long NTPClient::GetCurrentTime()
   return currentTime;
 }
 
-
 byte NTPClient::GetHours()
 {
-  return (currentTime  % 86400L) / 3600;
+  int hours = (currentTime  % 86400L) / 3600;
+  if (hours > 12 && military[0]=='N') hours -= 12;
+  return hours;
 }
 
 byte NTPClient::GetMinutes()
