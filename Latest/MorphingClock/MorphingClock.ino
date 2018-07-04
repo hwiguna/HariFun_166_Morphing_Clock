@@ -1,10 +1,12 @@
 // Morphing Clock by Hari Wiguna, July 2018
 //
 // Thanks to:
-// Tzapu for WifiManager
 // Dominic Buchstaller for PxMatrix
-// Brian Lough for tutorials on the matrix and WifiManager
+// Tzapu for WifiManager
+// Stephen Denne aka Datacute for DoubleResetDetector
+// Brian Lough aka WitnessMeNow for tutorials on the matrix and WifiManager
 
+#define double_buffer
 #include <PxMatrix.h>
 
 #ifdef ESP32
@@ -118,23 +120,32 @@ void loop() {
     }
     else
     {
-      int s0 = ss % 10;
-      int s1 = ss / 10;
-      if (s0!=digit0.Value()) digit0.Morph(s0);
-      if (s1!=digit1.Value()) digit1.Morph(s1);
+      // epoch changes every miliseconds, we only want to draw when digits actually change.
+      if (ss!=prevss) { 
+        int s0 = ss % 10;
+        int s1 = ss / 10;
+        if (s0!=digit0.Value()) digit0.Morph(s0);
+        if (s1!=digit1.Value()) digit1.Morph(s1);
+        //ntpClient.PrintTime();
+        prevss = ss;
+      }
 
-      int m0 = mm % 10;
-      int m1 = mm / 10;
-      if (m0!=digit2.Value()) digit2.Morph(m0);
-      if (m1!=digit3.Value()) digit3.Morph(m1);
+      if (mm!=prevmm) {
+        int m0 = mm % 10;
+        int m1 = mm / 10;
+        if (m0!=digit2.Value()) digit2.Morph(m0);
+        if (m1!=digit3.Value()) digit3.Morph(m1);
+        prevmm = mm;
+      }
       
-      int h0 = hh % 10;
-      int h1 = hh / 10;
-      if (h0!=digit4.Value()) digit4.Morph(h0);
-      if (h1!=digit5.Value()) digit5.Morph(h1);
+      if (hh!=prevhh) {
+        int h0 = hh % 10;
+        int h1 = hh / 10;
+        if (h0!=digit4.Value()) digit4.Morph(h0);
+        if (h1!=digit5.Value()) digit5.Morph(h1);
+        prevhh = hh;
+      }
     }
     lastEpoch = epoch;
   }
-
-  //delay(1000);
 }

@@ -30,11 +30,11 @@ void saveConfigCallback () {
 #include "NTPClient.h"
 
 #define DEBUG 0
-unsigned long askFrequency = 300*1000; // How frequent should we get current time? in miliseconds. 360,000ms = 360s = 60m = 1h
+const unsigned long askFrequency = 60*60*1000; // How frequent should we get current time? in miliseconds. 60minutes = 60*60s = 60*60*1000ms
 unsigned long timeToAsk;
 unsigned long timeToRead;
 unsigned long epoch;
-unsigned long epochTimeStamp; // What was millis() when we received last epoch?
+unsigned long epochTimeStamp; // What was millis() when asked server for epoch?
 unsigned long currentTime;
 char timezone[5] = "";
 char military[3] = ""; // 24 hour mode? Y/N
@@ -247,7 +247,6 @@ void NTPClient::AskCurrentEpoch()
   WiFi.hostByName(ntpServerName, timeServerIP);
 
   sendNTPpacket(timeServerIP); // send an NTP packet to a time server
-  epochTimeStamp = millis(); // When did we ask for time?
 }
 
 unsigned long NTPClient::ReadCurrentEpoch()
@@ -291,28 +290,28 @@ unsigned long NTPClient::ReadCurrentEpoch()
 unsigned long NTPClient::GetCurrentTime()
 {
   //if (DEBUG) Serial.println("GetCurrentTime called");
-  if (millis() > timeToAsk) { // Is it time to ask server for current time?
+  unsigned long timeNow = millis();
+  if (timeNow > timeToAsk) { // Is it time to ask server for current time?
     if (DEBUG) Serial.println(" Time to ask");
-    timeToAsk = millis() + askFrequency; // Don't ask again for a while
-    if (timeToRead == 0) { // Yes, it is time to ask. Have we asked yet?
-      //  No, we're not waiting to read, that meant we have not asked yet, so ask!
-      timeToRead = millis() + 1000; // Immediately set this so we won't keep asking repeatedly
-      //ReadCurrentEpoch(); // Flush out any remaining answers from previous Asks
+    timeToAsk = timeNow + askFrequency; // Don't ask again for a while
+    if (timeToRead == 0) { // If we have not asked...
+      timeToRead = timeNow + 1000; // Wait one second for server to respond
       AskCurrentEpoch(); // Ask time server what is the current time?
     } 
   }
 
-  if (millis() > timeToRead) // Is it time to read the answer of our AskCurrentEpoch?
+  if (timeToRead>0 && timeNow > timeToRead) // Is it time to read the answer of our AskCurrentEpoch?
   {
-    // Yes, it is time to read the answer. Read it!
-    ReadCurrentEpoch();
-    timeToRead = 0;
+    // Yes, it is time to read the answer. 
+    epochTimeStamp = timeToRead - 1000; // The time we receive is for when we asked for it a second ago.
+    ReadCurrentEpoch(); // Read the server response
+    timeToRead = 0; // We have read the response, so reset for next time we need to ask for time.
   }
     
-  if (epoch != 0) {
+  if (epoch != 0) {  // If we don't have epoch yet, return zero so we won't try to display millis on the clock
     unsigned long zoneOffset = String(timezone).toInt() * 3600;
-    unsigned long elapsedMillis = millis() - epochTimeStamp;
-    currentTime =  epoch + zoneOffset + (elapsedMillis / 1000); // If we don't have epoch yet, return zero so we won't try to display millis on the clock
+    unsigned long elapsedMillis = timeNow - epochTimeStamp;
+    currentTime =  epoch + zoneOffset + (elapsedMillis / 1000);
   }
   return currentTime;
 }
@@ -336,7 +335,8 @@ byte NTPClient::GetSeconds()
 
 void NTPClient::PrintTime()
 {
-  if (DEBUG) {
+  if (DEBUG) 
+  {
     // print the hour, minute and second:
     Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
     byte hh = GetHours();
