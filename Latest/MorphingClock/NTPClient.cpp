@@ -279,7 +279,7 @@ unsigned long NTPClient::ReadCurrentEpoch()
     // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
     const unsigned long seventyYears = 2208988800UL;
     // subtract seventy years:
-    epoch = secsSince1900 - seventyYears; // 1530082740; // Fake 6:59:00
+    epoch = secsSince1900 - seventyYears; // 1530082740=Fake 6:59:00, 1530795595=Fake 12:59:55, 1530835195=fake 23:59:55
     // print Unix time:
     if (DEBUG) Serial.println(epoch);
 

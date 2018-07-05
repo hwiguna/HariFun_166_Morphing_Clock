@@ -25,6 +25,16 @@ byte digitBits[] = {
   B11110110, // 9 ABCD_FG-
 };
 
+//byte sunBitmap[] {
+//  B100100100,
+//  B010001000,
+//  B001110000,
+//  B101110100,
+//  B001110000,
+//  B010001000,
+//  B100100100
+//};
+
 uint16_t black;
 
 Digit::Digit(PxMATRIX* d, byte value, uint16_t xo, uint16_t yo, uint16_t color) {
@@ -197,21 +207,60 @@ void Digit::Morph9() {
 
 void Digit::Morph0() {
   // ZERO
-  for (int i = 0; i < segWidth; i++)
+  for (int i = 0; i <= segWidth; i++)
   {
-    if (_value==5) { // If 5 to 0, we also need to slide F to B
-      if (i>0) drawLine(1 + i, segHeight * 2 + 1, 1 + i, segHeight + 2, black);
-      drawLine(2 + i, segHeight * 2 + 1, 2 + i, segHeight + 2, _color);
+    if (_value==1) { // If 1 to 0, slide B to F and E to C  
+      // slide B to F 
+      drawLine(segWidth - i, segHeight * 2+1 , segWidth - i, segHeight + 2, _color);
+      if (i > 0) drawLine(segWidth - i + 1, segHeight * 2+1, segWidth - i + 1, segHeight + 2, black);
+
+      // slide E to C
+      drawLine(segWidth - i, 1, segWidth - i, segHeight, _color);
+      if (i > 0) drawLine(segWidth - i + 1, 1, segWidth - i + 1, segHeight, black);
+
+      if (i<segWidth) drawPixel(segWidth - i, segHeight * 2 + 2 , _color); // Draw A
+      if (i<segWidth) drawPixel(segWidth - i, 0, _color); // Draw D
     }
-    // Flow G into E
-    drawPixel(segWidth - i, segHeight + 1, black);
-    drawPixel(0, segHeight - i, _color);
+    
+    if (_value==2) { // If 2 to 0, slide B to F and Flow G to C
+      // slide B to F 
+      drawLine(segWidth - i, segHeight * 2+1 , segWidth - i, segHeight + 2, _color);
+      if (i > 0) drawLine(segWidth - i + 1, segHeight * 2+1, segWidth - i + 1, segHeight + 2, black);
+    
+      drawPixel(1+i, segHeight + 1, black); // Erase G left to right
+      if (i<segWidth) drawPixel(segWidth + 1, segHeight + 1- i, _color);// Draw C
+    }
+
+    if (_value==3) { // B to F, C to E
+      // slide B to F 
+      drawLine(segWidth - i, segHeight * 2+1 , segWidth - i, segHeight + 2, _color);
+      if (i > 0) drawLine(segWidth - i + 1, segHeight * 2+1, segWidth - i + 1, segHeight + 2, black);
+      
+      // Move C to E
+      drawLine(segWidth - i, 1, segWidth - i, segHeight, _color);
+      if (i > 0) drawLine(segWidth - i + 1, 1, segWidth - i + 1, segHeight, black);
+
+      // Erase G from right to left
+      drawPixel(segWidth - i, segHeight + 1, black); // G
+    }
+    
+    if (_value==5) { // If 5 to 0, we also need to slide F to B
+      if (i<segWidth) {
+        if (i>0) drawLine(1 + i, segHeight * 2 + 1, 1 + i, segHeight + 2, black);
+        drawLine(2 + i, segHeight * 2 + 1, 2 + i, segHeight + 2, _color);
+      }
+    }
+    
+    if (_value==5 || _value==9) { // If 9 or 5 to 0, Flow G into E
+      if (i<segWidth) drawPixel(segWidth - i, segHeight + 1, black);
+      if (i<segWidth) drawPixel(0, segHeight - i, _color);
+    }
     delay(animSpeed);
   }
 }
 
 void Digit::Morph1() {
-  // Zero to One
+  // Zero or two to One
   for (int i = 0; i <= (segWidth + 1); i++)
   {
     // Move E left to right
