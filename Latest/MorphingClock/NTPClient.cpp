@@ -295,9 +295,9 @@ unsigned long NTPClient::GetCurrentTime()
     if (DEBUG) Serial.println(" Time to ask");
     timeToAsk = timeNow + askFrequency; // Don't ask again for a while
     if (timeToRead == 0) { // If we have not asked...
-      nextEpochTimeStamp = timeNow; // next epoch we receive is for "now".
       timeToRead = timeNow + 1000; // Wait one second for server to respond
       AskCurrentEpoch(); // Ask time server what is the current time?
+      nextEpochTimeStamp  = millis(); // next epoch we receive is for "now".
     } 
   }
 
@@ -310,7 +310,7 @@ unsigned long NTPClient::GetCurrentTime()
     
   if (lastEpoch != 0) {  // If we don't have lastEpoch yet, return zero so we won't try to display millis on the clock
     unsigned long zoneOffset = String(timezone).toInt() * 3600;
-    unsigned long elapsedMillis = timeNow - lastEpochTimeStamp;
+    unsigned long elapsedMillis = millis() - lastEpochTimeStamp;
     currentTime =  lastEpoch + zoneOffset + (elapsedMillis / 1000);
   }
   return currentTime;
