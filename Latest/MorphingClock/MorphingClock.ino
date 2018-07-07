@@ -71,7 +71,7 @@ Digit digit5(&display, 0, 63 - 7 - 9*6, 8, display.color565(0, 0, 255));
 //=== CLOCK ===
 #include "NTPClient.h"
 NTPClient ntpClient;
-unsigned long lastEpoch;
+unsigned long prevEpoch;
 byte prevhh;
 byte prevmm;
 byte prevss;
@@ -106,11 +106,11 @@ void loop() {
   //Serial.println(epoch);
   if (epoch != 0) ntpClient.PrintTime();
 
-  if (epoch != lastEpoch) {
+  if (epoch != prevEpoch) {
     int hh = ntpClient.GetHours();
     int mm = ntpClient.GetMinutes();
     int ss = ntpClient.GetSeconds();
-    if (lastEpoch == 0) { // If we didn't have a previous time. Just draw it without morphing.
+    if (prevEpoch == 0) { // If we didn't have a previous time. Just draw it without morphing.
       digit0.Draw(ss % 10);
       digit1.Draw(ss / 10);
       digit2.Draw(mm % 10);
@@ -146,6 +146,6 @@ void loop() {
         prevhh = hh;
       }
     }
-    lastEpoch = epoch;
+    prevEpoch = epoch;
   }
 }
