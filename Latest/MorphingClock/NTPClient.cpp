@@ -152,16 +152,18 @@ void NTPClient::Setup(PxMATRIX* d)
     Serial.println("Double Reset Detected");
     digitalWrite(LED_BUILTIN, LOW);
 
-    _display->setCursor(0, row0);
-    _display->print("AP:");
-    _display->print(wifiManagerAPName);
+    _display->setCursor(1, row0);     _display->print("AP");
+    _display->setCursor(1+10, row0);    _display->print(":");
+    _display->setCursor(1+10+5, row0);  _display->print(wifiManagerAPName);
 
-    _display->setCursor(0, row1);
-    _display->print("Pw:");
-    _display->print(wifiManagerAPPassword);
+    _display->setCursor(1, row1);     _display->print("Pw");
+    _display->setCursor(1+10, row1);    _display->print(":");
+    _display->setCursor(1+10+5, row1);  _display->print(wifiManagerAPPassword);
 
-    _display->setCursor(0, row2);
-    _display->print("192.168.4.1");
+    _display->setCursor(1, row2); _display->print("192");
+    _display->setCursor(1+3*6 -1, row2); _display->print(".168");
+    _display->setCursor(1+3*6 -1 + 5+ 3*6, row2); _display->print(".4");
+    _display->setCursor(1+3*6 -1 + 5+ 3*6 + 5 + 6, row2); _display->print(".1");
 
     wifiManager.startConfigPortal(wifiManagerAPName, wifiManagerAPPassword);
 
