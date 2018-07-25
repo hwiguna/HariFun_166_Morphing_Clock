@@ -180,7 +180,7 @@ void NTPClient::Setup(PxMATRIX* d)
     //fetches ssid and pass from eeprom and tries to connect
     //if it does not connect it starts an access point with the specified name wifiManagerAPName
     //and goes into a blocking loop awaiting configuration
-    wifiManager.autoConnect(wifiManagerAPName);
+    wifiManager.autoConnect(wifiManagerAPName, wifiManagerAPPassword);
   }
   
   //-- Status --
