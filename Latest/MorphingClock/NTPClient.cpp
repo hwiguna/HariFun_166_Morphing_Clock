@@ -30,15 +30,21 @@ void saveConfigCallback () {
 #include "NTPClient.h"
 
 #define DEBUG 0
-const unsigned long askFrequency = 60*60*1000; // How frequent should we get current time? in miliseconds. 60minutes = 60*60s = 60*60*1000ms
+const unsigned long askFrequency = 60 * 60 * 1000; // How frequent should we get current time? in miliseconds. 60minutes = 60*60s = 60*60*1000ms
 unsigned long timeToAsk;
 unsigned long timeToRead;
 unsigned long lastEpoch; // We don't want to continually ask for epoch from time server, so this is the last epoch we received (could be up to an hour ago based on askFrequency)
 unsigned long lastEpochTimeStamp; // What was millis() when asked server for Epoch we are currently using?
 unsigned long nextEpochTimeStamp; // What was millis() when we asked server for the upcoming epoch
 unsigned long currentTime;
-char timezone[5] = "";
-char military[3] = ""; // 24 hour mode? Y/N
+
+//== PREFERENCES == (Fill these appropriately if you could not connect to the ESP via your phone)
+char homeWifiName[] = ""; // PREFERENCE: The name of the home WiFi access point that you normally connect to.
+char homeWifiPassword[] = ""; // PREFERENCE: The password to the home WiFi access point that you normally connect to.
+char timezone[5] = "-2"; // PREFERENCE: TimeZone offset. Go to https://www.timeanddate.com/time/map to find your timezone offset
+char military[3] = "Y"; // PREFERENCE: 24 hour mode? Y/N
+
+char configFilename[] = "/config.json";
 
 const char* ntpServerName = "time.nist.gov";
 IPAddress timeServerIP; // time.nist.gov NTP server address
@@ -61,7 +67,8 @@ void configModeCallback (WiFiManager *myWiFiManager) {
 
 
 bool loadConfig() {
-  File configFile = SPIFFS.open("/config.json", "r");
+  Serial.println("=== Loading Config ===");
+  File configFile = SPIFFS.open(configFilename, "r");
   if (!configFile) {
     Serial.println("Failed to open config file");
     return false;
@@ -92,12 +99,13 @@ bool loadConfig() {
 }
 
 bool saveConfig() {
+  Serial.println("=== Saving Config ===");
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
   json["timezone"] = timezone;
   json["military"] = military;
 
-  File configFile = SPIFFS.open("/config.json", "w");
+  File configFile = SPIFFS.open(configFilename, "w");
   if (!configFile) {
     Serial.println("Failed to open config file for writing");
     return false;
@@ -126,6 +134,7 @@ void NTPClient::Setup(PxMATRIX* d)
     Serial.println("Failed to mount FS");
     return;
   }
+
   loadConfig();
 
   //-- Display --
@@ -134,61 +143,99 @@ void NTPClient::Setup(PxMATRIX* d)
   _display->setTextColor(_display->color565(0, 0, 255));
   //_display->setFont(&FreeMono9pt7b);
   //_display->setTextSize(1);
-  const byte row0 = 2+0*10;
-  const byte row1 = 2+1*10;
-  const byte row2 = 2+2*10;
+  const byte row0 = 2 + 0 * 10;
+  const byte row1 = 2 + 1 * 10;
+  const byte row2 = 2 + 2 * 10;
 
   //-- WiFiManager --
   //Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
+  //wifiManager.resetSettings(); // Uncomment this to reset saved WiFi credentials.  Comment it back after you run once.
+  //wifiManager.setBreakAfterConfig(true); // Get out of WiFiManager even if we fail to connect after config.  So our Hail Mary pass could take care of it.
   wifiManager.setSaveConfigCallback(saveConfigCallback);
-  WiFiManagerParameter timeZoneParameter("timeZone", "Time Zone", timezone, 5); 
+  WiFiManagerParameter timeZoneParameter("timezone", "Time Zone", timezone, 5);
   wifiManager.addParameter(&timeZoneParameter);
-  WiFiManagerParameter militaryParameter("military", "24Hr", military, 3); 
+  WiFiManagerParameter militaryParameter("military", "24Hr", military, 3);
   wifiManager.addParameter(&militaryParameter);
 
-  //-- Double-Reset --
-  if (drd.detectDoubleReset()) {
-    Serial.println("Double Reset Detected");
-    digitalWrite(LED_BUILTIN, LOW);
+  int connectionStatus = WL_IDLE_STATUS;
 
-    _display->setCursor(1, row0);     _display->print("AP");
-    _display->setCursor(1+10, row0);    _display->print(":");
-    _display->setCursor(1+10+5, row0);  _display->print(wifiManagerAPName);
+  if (strlen(homeWifiName) > 0) {
+    Serial.println("USING IN SKETCH CREDENTIALS:");
+    Serial.println(homeWifiName);
+    Serial.println(homeWifiPassword);
 
-    _display->setCursor(1, row1);     _display->print("Pw");
-    _display->setCursor(1+10, row1);    _display->print(":");
-    _display->setCursor(1+10+5, row1);  _display->print(wifiManagerAPPassword);
-
-    _display->setCursor(1, row2); _display->print("192");
-    _display->setCursor(1+3*6 -1, row2); _display->print(".168");
-    _display->setCursor(1+3*6 -1 + 5+ 3*6, row2); _display->print(".4");
-    _display->setCursor(1+3*6 -1 + 5+ 3*6 + 5 + 6, row2); _display->print(".1");
-
-    wifiManager.startConfigPortal(wifiManagerAPName, wifiManagerAPPassword);
-
-    _display->fillScreen(_display->color565(0, 0, 0));
-  } 
-  else 
-  {
-    Serial.println("No Double Reset Detected");
-    digitalWrite(LED_BUILTIN, HIGH);
-
-    _display->setCursor(2, row1);
-    _display->print("Connecting");
-
-    //fetches ssid and pass from eeprom and tries to connect
-    //if it does not connect it starts an access point with the specified name wifiManagerAPName
-    //and goes into a blocking loop awaiting configuration
-    wifiManager.autoConnect(wifiManagerAPName);
+    connectionStatus = WiFi.begin(homeWifiName, homeWifiPassword);
+    Serial.print("WiFi.begin returned ");
+    Serial.println(connectionStatus);
   }
-  
+  else {
+
+    //-- Double-Reset --
+    if (drd.detectDoubleReset()) {
+      Serial.println("DOUBLE Reset Detected");
+      digitalWrite(LED_BUILTIN, LOW);
+
+      _display->setCursor(1, row0);     _display->print("AP");
+      _display->setCursor(1 + 10, row0);    _display->print(":");
+      _display->setCursor(1 + 10 + 5, row0);  _display->print(wifiManagerAPName);
+
+      _display->setCursor(1, row1);     _display->print("Pw");
+      _display->setCursor(1 + 10, row1);    _display->print(":");
+      _display->setCursor(1 + 10 + 5, row1);  _display->print(wifiManagerAPPassword);
+
+      _display->setCursor(1, row2); _display->print("192");
+      _display->setCursor(1 + 3 * 6 - 1, row2); _display->print(".168");
+      _display->setCursor(1 + 3 * 6 - 1 + 5 + 3 * 6, row2); _display->print(".4");
+      _display->setCursor(1 + 3 * 6 - 1 + 5 + 3 * 6 + 5 + 6, row2); _display->print(".1");
+
+      WiFi.disconnect();
+      connectionStatus = wifiManager.startConfigPortal(wifiManagerAPName, wifiManagerAPPassword);
+
+      Serial.print("startConfigPortal returned ");
+      Serial.println(connectionStatus);
+
+      _display->fillScreen(_display->color565(0, 0, 0));
+    }
+    else
+    {
+      Serial.println("SINGLE reset Detected");
+      digitalWrite(LED_BUILTIN, HIGH);
+
+      _display->setCursor(2, row1);
+      _display->print("Connecting");
+
+      //fetches ssid and pass from eeprom and tries to connect
+      //if it does not connect it starts an access point with the specified name wifiManagerAPName
+      //and goes into a blocking loop awaiting configuration
+
+      connectionStatus = wifiManager.autoConnect(); //wifiManagerAPName, wifiManagerAPPassword);
+      Serial.print("autoConnect returned ");
+      Serial.println(connectionStatus);
+    }
+  }
+
+
+  // Hail Mary pass. If WiFiManager fail to connect user to home wifi, connect manually :-(
+  //  if (WiFi.status() != WL_CONNECTED) {
+  //     Serial.println("Hail Mary!");
+  //
+  //     ETS_UART_INTR_DISABLE();
+  //      wifi_station_disconnect();
+  //      ETS_UART_INTR_ENABLE();
+  //
+  //     WiFi.begin(homeWifiName, homeWifiPassword);
+  //     Serial.println("Connected?");
+  //  }
+
   //-- Status --
+  Serial.print("WiFi.status() = ");
+  Serial.println(WiFi.status());
+
   _display->fillScreen(_display->color565(0, 0, 0));
   _display->setCursor(2, row0);
   _display->print("Connected!");
-  Serial.println("WiFi connected");
-  
+
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 
@@ -198,13 +245,13 @@ void NTPClient::Setup(PxMATRIX* d)
   Serial.println(udp.localPort());
 
   //-- Timezone --
-  strcpy(timezone,timeZoneParameter.getValue());
+  strcpy(timezone, timeZoneParameter.getValue());
   _display->setCursor(2, row1);
   _display->print("Zone:");
   _display->print(timezone);
-  
+
   //-- Military --
-  strcpy(military,militaryParameter.getValue());
+  strcpy(military, militaryParameter.getValue());
   _display->setCursor(2, row2);
   _display->print("24Hr:");
   _display->print(military);
@@ -213,7 +260,7 @@ void NTPClient::Setup(PxMATRIX* d)
     saveConfig();
   }
   drd.stop();
-  
+
   delay(3000);
 }
 
@@ -300,16 +347,16 @@ unsigned long NTPClient::GetCurrentTime()
       timeToRead = timeNow + 1000; // Wait one second for server to respond
       AskCurrentEpoch(); // Ask time server what is the current time?
       nextEpochTimeStamp  = millis(); // next epoch we receive is for "now".
-    } 
+    }
   }
 
-  if (timeToRead>0 && timeNow > timeToRead) // Is it time to read the answer of our AskCurrentEpoch?
+  if (timeToRead > 0 && timeNow > timeToRead) // Is it time to read the answer of our AskCurrentEpoch?
   {
-    // Yes, it is time to read the answer. 
+    // Yes, it is time to read the answer.
     ReadCurrentEpoch(); // Read the server response
     timeToRead = 0; // We have read the response, so reset for next time we need to ask for time.
   }
-    
+
   if (lastEpoch != 0) {  // If we don't have lastEpoch yet, return zero so we won't try to display millis on the clock
     unsigned long zoneOffset = String(timezone).toInt() * 3600;
     unsigned long elapsedMillis = millis() - lastEpochTimeStamp;
@@ -321,7 +368,7 @@ unsigned long NTPClient::GetCurrentTime()
 byte NTPClient::GetHours()
 {
   int hours = (currentTime  % 86400L) / 3600;
-  if (hours > 12 && military[0]=='N') hours -= 12;
+  if (hours > 12 && military[0] == 'N') hours -= 12;
   return hours;
 }
 
@@ -337,7 +384,7 @@ byte NTPClient::GetSeconds()
 
 void NTPClient::PrintTime()
 {
-  if (DEBUG) 
+  if (DEBUG)
   {
     // print the hour, minute and second:
     Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
