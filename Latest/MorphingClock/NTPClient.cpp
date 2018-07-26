@@ -118,6 +118,7 @@ bool saveConfig() {
   Serial.println(military);
 
   json.printTo(configFile);
+  //configFile.close();
   return true;
 }
 
