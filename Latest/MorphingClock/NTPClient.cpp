@@ -40,13 +40,14 @@ unsigned long currentTime;
 char timezone[5] = "";
 char military[3] = ""; // 24 hour mode? Y/N
 
-const char* ntpServerName = "time.nist.gov";
+const char* ntpServerName = "time.google.com"; // NTP google server
 IPAddress timeServerIP; // time.nist.gov NTP server address
 const int NTP_PACKET_SIZE = 48; // NTP time stamp is in the first 48 bytes of the message
 byte packetBuffer[ NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets
 WiFiUDP udp; // A UDP instance to let us send and receive packets over UDP
 unsigned int localPort = 2390;      // local port to listen for UDP packets
 
+bool error_getTime = false;
 
 void configModeCallback (WiFiManager *myWiFiManager) {
   Serial.println("Entered config mode");
@@ -257,9 +258,11 @@ unsigned long NTPClient::ReadCurrentEpoch()
   if (DEBUG) Serial.println("ReadCurrentEpoch called");
   int cb = udp.parsePacket();
   if (!cb) {
+    error_getTime = false;
     if (DEBUG) Serial.println("no packet yet");
   }
   else {
+    error_getTime = true;
     if (DEBUG) Serial.print("packet received, length=");
     if (DEBUG) Serial.println(cb);
     // We've received a packet, read the data from it
@@ -293,7 +296,7 @@ unsigned long NTPClient::GetCurrentTime()
 {
   //if (DEBUG) Serial.println("GetCurrentTime called");
   unsigned long timeNow = millis();
-  if (timeNow > timeToAsk) { // Is it time to ask server for current time?
+  if (timeNow > timeToAsk || !error_getTime) { // Is it time to ask server for current time?
     if (DEBUG) Serial.println(" Time to ask");
     timeToAsk = timeNow + askFrequency; // Don't ask again for a while
     if (timeToRead == 0) { // If we have not asked...
@@ -360,4 +363,3 @@ void NTPClient::PrintTime()
     Serial.println(ss); // print the second
   }
 }
-
