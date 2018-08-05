@@ -41,8 +41,8 @@ unsigned long currentTime;
 //== PREFERENCES == (Fill these appropriately if you could not connect to the ESP via your phone)
 char homeWifiName[] = ""; // PREFERENCE: The name of the home WiFi access point that you normally connect to.
 char homeWifiPassword[] = ""; // PREFERENCE: The password to the home WiFi access point that you normally connect to.
-char timezone[5] = "-2"; // PREFERENCE: TimeZone offset. Go to https://www.timeanddate.com/time/map to find your timezone offset
-char military[3] = "Y"; // PREFERENCE: 24 hour mode? Y/N
+char timezone[5] = "-5"; // PREFERENCE: TimeZone offset. Go to https://www.timeanddate.com/time/map to find your timezone offset
+char military[3] = "N"; // PREFERENCE: 24 hour mode? Y/N
 
 char configFilename[] = "/config.json";
 
@@ -53,6 +53,7 @@ byte packetBuffer[ NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing pack
 WiFiUDP udp; // A UDP instance to let us send and receive packets over UDP
 unsigned int localPort = 2390;      // local port to listen for UDP packets
 
+bool error_getTime = false;
 
 void configModeCallback (WiFiManager *myWiFiManager) {
   Serial.println("Entered config mode");
@@ -166,6 +167,9 @@ void NTPClient::Setup(PxMATRIX* d)
     Serial.println(homeWifiName);
     Serial.println(homeWifiPassword);
 
+    _display->setCursor(2, row1);
+    _display->print("Connecting");
+
     connectionStatus = WiFi.begin(homeWifiName, homeWifiPassword);
     Serial.print("WiFi.begin returned ");
     Serial.println(connectionStatus);
@@ -210,13 +214,18 @@ void NTPClient::Setup(PxMATRIX* d)
       //if it does not connect it starts an access point with the specified name wifiManagerAPName
       //and goes into a blocking loop awaiting configuration
 
+      
       connectionStatus = wifiManager.autoConnect(); //wifiManagerAPName, wifiManagerAPPassword);
       Serial.print("autoConnect returned ");
       Serial.println(connectionStatus);
     }
   }
-
-
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
   // Hail Mary pass. If WiFiManager fail to connect user to home wifi, connect manually :-(
   //  if (WiFi.status() != WL_CONNECTED) {
   //     Serial.println("Hail Mary!");
@@ -293,7 +302,8 @@ unsigned long NTPClient::sendNTPpacket(IPAddress& address)
 
 void NTPClient::AskCurrentEpoch()
 {
-  if (DEBUG) Serial.println("AskCurrentEpoch called");
+  //if (DEBUG) Serial.println("AskCurrentEpoch called");
+  Serial.println("AskCurrentEpoch called");
   //get a random server from the pool
   WiFi.hostByName(ntpServerName, timeServerIP);
 
@@ -305,11 +315,15 @@ unsigned long NTPClient::ReadCurrentEpoch()
   if (DEBUG) Serial.println("ReadCurrentEpoch called");
   int cb = udp.parsePacket();
   if (!cb) {
+    error_getTime = false;
     if (DEBUG) Serial.println("no packet yet");
   }
   else {
-    if (DEBUG) Serial.print("packet received, length=");
-    if (DEBUG) Serial.println(cb);
+    error_getTime = true;
+//    if (DEBUG) Serial.print("packet received, length=");
+//    if (DEBUG) Serial.println(cb);
+    Serial.print("packet received, length=");
+    Serial.println(cb);
     // We've received a packet, read the data from it
     udp.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
 
@@ -341,7 +355,7 @@ unsigned long NTPClient::GetCurrentTime()
 {
   //if (DEBUG) Serial.println("GetCurrentTime called");
   unsigned long timeNow = millis();
-  if (timeNow > timeToAsk) { // Is it time to ask server for current time?
+  if (timeNow > timeToAsk || !error_getTime) { // Is it time to ask server for current time?
     if (DEBUG) Serial.println(" Time to ask");
     timeToAsk = timeNow + askFrequency; // Don't ask again for a while
     if (timeToRead == 0) { // If we have not asked...

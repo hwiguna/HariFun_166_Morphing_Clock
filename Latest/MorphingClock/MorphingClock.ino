@@ -40,24 +40,29 @@ Ticker display_ticker;
 // Pins for LED MATRIX
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 
+#define refreshRate 0.025 // higher allows more time for WiFi, but makes the display dimmer. Originally 0.002
+#define persistenceMicroSeconds 280 // Higher = brighter.  Originally 70
+//#define refreshRate 0.002 // higher allows more time for WiFi, but makes the display dimmer. Originally 0.002
+//#define persistenceMicroSeconds 70 // Higher = brighter.  Originally 70
+
 #ifdef ESP8266
 // ISR for display refresh
 void display_updater()
 {
   //display.displayTestPattern(70);
-  display.display(70);
+  display.display(persistenceMicroSeconds); // How many microseconds to enable the display
 }
 #endif
 
-#ifdef ESP32
-void IRAM_ATTR display_updater() {
-  // Increment the counter and set the time of ISR
-  portENTER_CRITICAL_ISR(&timerMux);
-  //isplay.display(70);
-  display.displayTestPattern(70);
-  portEXIT_CRITICAL_ISR(&timerMux);
-}
-#endif
+//#ifdef ESP32
+//void IRAM_ATTR display_updater() {
+//  // Increment the counter and set the time of ISR
+//  portENTER_CRITICAL_ISR(&timerMux);
+//  //display.display(70);
+//  display.displayTestPattern(70);
+//  portEXIT_CRITICAL_ISR(&timerMux);
+//}
+//#endif
 
 //=== SEGMENTS ===
 #include "Digit.h"
@@ -82,15 +87,20 @@ void setup() {
   display.begin(16);
 
 #ifdef ESP8266
-  display_ticker.attach(0.002, display_updater);
+  //display_ticker.attach(0.002, display_updater);
+  // First parameter is how often the display should be refreshed.
+  // Originally 0.002 caused unreliable WiFi on some NodeMCU.
+  // Hari changed this to 0.02 so it refresh less frequently.  
+  // This caused display to be dimmer, so I increased how long the display should be latched from 70 to 500
+  display_ticker.attach(refreshRate, display_updater);
 #endif
 
-#ifdef ESP32
-  timer = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer, &display_updater, true);
-  timerAlarmWrite(timer, 2000, true);
-  timerAlarmEnable(timer);
-#endif
+//#ifdef ESP32
+//  timer = timerBegin(0, 80, true);
+//  timerAttachInterrupt(timer, &display_updater, true);
+//  timerAlarmWrite(timer, 2000, true);
+//  timerAlarmEnable(timer);
+//#endif
 
   ntpClient.Setup(&display);
 
