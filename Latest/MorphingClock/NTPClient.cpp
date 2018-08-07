@@ -46,7 +46,7 @@ char military[3] = "N"; // PREFERENCE: 24 hour mode? Y/N
 
 char configFilename[] = "/config.json";
 
-const char* ntpServerName = "time.nist.gov";
+const char* ntpServerName = "time.google.com";
 IPAddress timeServerIP; // time.nist.gov NTP server address
 const int NTP_PACKET_SIZE = 48; // NTP time stamp is in the first 48 bytes of the message
 byte packetBuffer[ NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets
@@ -383,7 +383,12 @@ unsigned long NTPClient::GetCurrentTime()
 byte NTPClient::GetHours()
 {
   int hours = (currentTime  % 86400L) / 3600;
-  if (hours > 12 && military[0] == 'N') hours -= 12;
+  
+  // Convert to AM/PM if military time option is off (N)
+  if (military[0] == 'N') {
+    if (hours == 0) hours = 12; // Midnight in military time is 0:mm, but we want midnight to be 12:mm
+    if (hours > 12) hours -= 12; // After noon 13:mm should show as 01:mm, etc...
+  }
   return hours;
 }
 
