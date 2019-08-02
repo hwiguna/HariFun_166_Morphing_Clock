@@ -10,17 +10,18 @@ class Digit {
   public:
     Digit(PxMATRIX* d, byte value, uint16_t xo, uint16_t yo, uint16_t color);
     void Draw(byte value);
-    void Morph(byte newValue);
-    byte Value();
+    void Morph(void);
+    void SetValue(byte value);
     void DrawColon(uint16_t c);
     
   private:
     PxMATRIX* _display;
+    byte _oldvalue;
     byte _value;
+    byte _morphcnt;
     uint16_t _color;
     uint16_t xOffset;
     uint16_t yOffset;
-    int animSpeed = 30;
 
     void drawPixel(uint16_t x, uint16_t y, uint16_t c);
     void drawFillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c);

@@ -1,11 +1,11 @@
+#ifndef __WTA_CLIENT_H__
+#define __WTA_CLIENT_H__
 /*
 
- Udp NTP Client
+ WTA Client
 
- Get the time from a Network Time Protocol (NTP) time server
- Demonstrates use of UDP sendPacket and ReceivePacket
- For more on NTP time servers and the messages needed to communicate with them,
- see http://en.wikipedia.org/wiki/Network_Time_Protocol
+ Get the time from the worldtimeapi-server to prevent timezone and DST-mess
+ Demonstrates use http-client and json-parser
 
  created 4 Sep 2010
  by Michael Margolis
@@ -14,6 +14,7 @@
  updated for the ESP8266 12 Apr 2015 
  by Ivan Grokhotkov
  Refactored into NTPClient class by Hari Wiguna, 2018
+ changed from NTP to worldtimeapi by SnowHead, 2019
 
  This code is in the public domain.
 
@@ -24,9 +25,9 @@
 #include <PxMatrix.h>
 //#include <Fonts/FreeMono9pt7b.h>
 
- class NTPClient {
+ class WTAClient {
   public:
-    NTPClient();
+    WTAClient();
     void Setup(PxMATRIX* d);
     unsigned long GetCurrentTime();
     byte GetHours();
@@ -36,8 +37,7 @@
     
   private:
     PxMATRIX* _display;
-    unsigned long sendNTPpacket(IPAddress& address);
     void AskCurrentEpoch();
     unsigned long ReadCurrentEpoch();
  };
-
+#endif // __WTA_CLIENT_H__
