@@ -8,7 +8,7 @@ Read what this code primary was all about on [Instructable](https://www.instruct
 - No further mess around with timezones and DST settings. The default timezone "ip" (case sensitive!) will force the server to determine your location and DST state by analyzing your public IP. Only if you're connected via a foreign proxy to the internet you will have to set your local timezone regarding the list on [WTA](http://worldtimeapi.org/api/timezones). DST settings will always be detected automatically.
 - Digits will not further morphed digit by digit but all in parallel.
 - Easier selection of digit color.
-- Patch for week ESP8266-12E included
+- Patch for weak ESP8266-12E included
 
 
 Click photo for a quick demo.
