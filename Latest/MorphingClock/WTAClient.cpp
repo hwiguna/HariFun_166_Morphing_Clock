@@ -44,7 +44,7 @@ unsigned long currentTime;
 char homeWifiName[] = ""; // PREFERENCE: The name of the home WiFi access point that you normally connect to.
 char homeWifiPassword[] = ""; // PREFERENCE: The password to the home WiFi access point that you normally connect to.
 char timezone[32] = "ip"; // PREFERENCE: TimeZone. Go to http://worldtimeapi.org/api/timezone to find your timezone string or chose "ip" to use IP-localisation for timezone detection
-char military[3] = "Y"; // PREFERENCE: 24 hour mode? Y/N
+bool military; // PREFERENCE: 24 hour mode?
 
 char configFilename[] = "/config.json";
 
@@ -88,9 +88,6 @@ bool loadConfig() {
     Serial.println("Failed to parse config file");
     return false;
   }
-
-  strcpy(timezone, json["timezone"]);
-  strcpy(military, json["military"]);
   return true;
 }
 
@@ -98,8 +95,6 @@ bool saveConfig() {
   Serial.println("=== Saving Config ===");
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
-  json["timezone"] = timezone;
-  json["military"] = military;
 
   File configFile = SPIFFS.open(configFilename, "w");
   if (!configFile) {
@@ -150,10 +145,6 @@ void WTAClient::Setup(PxMATRIX* d)
   //wifiManager.resetSettings(); // Uncomment this to reset saved WiFi credentials.  Comment it back after you run once.
   //wifiManager.setBreakAfterConfig(true); // Get out of WiFiManager even if we fail to connect after config.  So our Hail Mary pass could take care of it.
   wifiManager.setSaveConfigCallback(saveConfigCallback);
-  WiFiManagerParameter timeZoneParameter("timezone", "Time Zone", timezone, 32);
-  wifiManager.addParameter(&timeZoneParameter);
-  WiFiManagerParameter militaryParameter("military", "24Hr", military, 3);
-  wifiManager.addParameter(&militaryParameter);
 
   int connectionStatus = WL_IDLE_STATUS;
 
@@ -245,7 +236,6 @@ void WTAClient::Setup(PxMATRIX* d)
   Serial.println(WiFi.localIP());
 
   //-- Timezone --
-  strcpy(timezone, timeZoneParameter.getValue());
   _display->setCursor(2, row1);
   _display->print("TZ:");
   if(strlen(timezone) < 9)
@@ -260,16 +250,14 @@ void WTAClient::Setup(PxMATRIX* d)
    }
 
   //-- Military --
-  strcpy(military, militaryParameter.getValue());
   _display->setCursor(2, row2);
   _display->print("24Hr:");
-  _display->print(military);
+  _display->print((military) ? "Y" : "N");
 
   if (shouldSaveConfig) {
     saveConfig();
   }
   drd.stop();
-
   delay(3000);
 }
 
@@ -375,8 +363,8 @@ byte WTAClient::GetHours()
 {
   int hours = (currentTime  % 86400L) / 3600;
   
-  // Convert to AM/PM if military time option is off (N)
-  if (military[0] == 'N') {
+  // Convert to AM/PM if military time option is off
+  if (!military) {
     if (hours == 0) hours = 12; // Midnight in military time is 0:mm, but we want midnight to be 12:mm
     if (hours > 12) hours -= 12; // After noon 13:mm should show as 01:mm, etc...
   }

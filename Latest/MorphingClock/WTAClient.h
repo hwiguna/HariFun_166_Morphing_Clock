@@ -19,11 +19,13 @@
  This code is in the public domain.
 
  */
-
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <PxMatrix.h>
 //#include <Fonts/FreeMono9pt7b.h>
+
+extern char timezone[32]; // PREFERENCE: TimeZone. Go to http://worldtimeapi.org/api/timezone to find your timezone string or chose "ip" to use IP-localisation for timezone detection
+extern bool military; // PREFERENCE: 24 hour mode?
 
  class WTAClient {
   public:

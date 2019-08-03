@@ -46,6 +46,10 @@ void Digit::SetValue(byte value) {
   _morphcnt = 0;
 }
 
+void Digit::SetColor(uint16_t color) {
+  _color = color;
+}
+
 void Digit::drawPixel(uint16_t x, uint16_t y, uint16_t c)
 {
   _display->drawPixel(xOffset + x, height - (y + yOffset), c);
