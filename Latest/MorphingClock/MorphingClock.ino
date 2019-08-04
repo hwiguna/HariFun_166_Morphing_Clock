@@ -270,6 +270,7 @@ void setup()
         {
           *outstr = 0;
           mclockp->h24 = 0;
+          military = 0;
 #ifndef ESP32
           mclockp->r = 0;
           mclockp->g = 0;
@@ -299,7 +300,11 @@ void setup()
           else
             sprintf(outstr + strlen(outstr), "HMOD24=%s\r\n", (mclockp->h24)?"on":"off");
           prevEpoch = 0;
-          military = mclockp->h24;
+          if(military != mclockp->h24)
+          {
+            military = mclockp->h24;
+            wtaClient.GetCurrentTime();
+          }
         }
         else if(server.argName(i) == "TIMEZONE")
         {
@@ -307,9 +312,12 @@ void setup()
           {
             strcpy((char*)&mclockp->timezone, server.arg(i).c_str());
             strcpy((char*)&timezone, (char*)&mclockp->timezone);
-          }
+            wtaClient.AskCurrentEpoch();
+            wtaClient.ReadCurrentEpoch();
+            wtaClient.GetCurrentTime();
+           }
           else
-          sprintf(outstr + strlen(outstr), "TIMEZONE=%s\r\n", mclockp->timezone);
+            sprintf(outstr + strlen(outstr), "TIMEZONE=%s\r\n", mclockp->timezone);
         }
         else if(server.argName(i) == "FADE")
         {

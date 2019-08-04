@@ -32,6 +32,8 @@ extern bool military; // PREFERENCE: 24 hour mode?
     WTAClient();
     void Setup(PxMATRIX* d);
     unsigned long GetCurrentTime();
+    unsigned long ReadCurrentEpoch();
+    void AskCurrentEpoch();
     byte GetHours();
     byte GetMinutes();
     byte GetSeconds();
@@ -39,7 +41,5 @@ extern bool military; // PREFERENCE: 24 hour mode?
     
   private:
     PxMATRIX* _display;
-    void AskCurrentEpoch();
-    unsigned long ReadCurrentEpoch();
  };
 #endif // __WTA_CLIENT_H__

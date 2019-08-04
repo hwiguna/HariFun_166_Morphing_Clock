@@ -243,10 +243,18 @@ void WTAClient::Setup(PxMATRIX* d)
    else
    {
     char *tzptr = strrchr(timezone, '/');
-    if(strlen(tzptr) < 9)
+    if(!tzptr)
+      tzptr = timezone;
+    else
+      ++tzptr;
+    if(strlen(tzptr) < 7)
      _display->print(tzptr);
     else
-     _display->print(tzptr + strlen(tzptr) - 8);
+    {
+      char tstr[8];
+      strncpy(tstr, tzptr, 6);
+     _display->print(tstr);
+    }
    }
 
   //-- Military --
@@ -263,14 +271,17 @@ void WTAClient::Setup(PxMATRIX* d)
 
 void WTAClient::AskCurrentEpoch()
 {
-  char url[64] = WTAServerName;
+  char url[128];
   int httpCode;
-  
-  //if (DEBUG) Serial.println("AskCurrentEpoch called");
-  Serial.println("AskCurrentEpoch called");
 
-  strcat(url, timezone);
+  if(strcmp(timezone, "ip"))
+    sprintf(url, "%stimezone/%s", WTAServerName, timezone);
+  else
+    sprintf(url, "%s%s", WTAServerName, timezone);
   http.begin(url);
+
+  //if (DEBUG) Serial.println("AskCurrentEpoch called");
+    
   httpCode = http.GET();
 
   payload = "";
@@ -290,7 +301,7 @@ unsigned long WTAClient::ReadCurrentEpoch()
     if (DEBUG) Serial.println("no packet yet");
   }
   else {
-     const size_t capacity = JSON_OBJECT_SIZE(15) + 400;
+     const size_t capacity = JSON_OBJECT_SIZE(15) + 512;
      DynamicJsonBuffer jsonBuffer(capacity);
      
      error_getTime = true;
