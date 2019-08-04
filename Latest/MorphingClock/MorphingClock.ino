@@ -303,7 +303,7 @@ void setup()
           if(military != mclockp->h24)
           {
             military = mclockp->h24;
-            wtaClient.GetCurrentTime();
+            wtaClient.GetCurrentTime(true);
           }
         }
         else if(server.argName(i) == "TIMEZONE")
@@ -312,9 +312,7 @@ void setup()
           {
             strcpy((char*)&mclockp->timezone, server.arg(i).c_str());
             strcpy((char*)&timezone, (char*)&mclockp->timezone);
-            wtaClient.AskCurrentEpoch();
-            wtaClient.ReadCurrentEpoch();
-            wtaClient.GetCurrentTime();
+            wtaClient.GetCurrentTime(true);
            }
           else
             sprintf(outstr + strlen(outstr), "TIMEZONE=%s\r\n", mclockp->timezone);
@@ -461,7 +459,7 @@ void setup()
 
 void loop()
 {
-  unsigned long epoch = wtaClient.GetCurrentTime();
+  unsigned long epoch = wtaClient.GetCurrentTime(false);
   //Serial.print("GetCurrentTime returned epoch = ");
   //Serial.println(epoch);
   if (epoch != 0)

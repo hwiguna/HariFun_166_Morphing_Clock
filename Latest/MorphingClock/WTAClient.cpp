@@ -342,28 +342,28 @@ unsigned long WTAClient::ReadCurrentEpoch()
   }
 }
 
-unsigned long WTAClient::GetCurrentTime()
+unsigned long WTAClient::GetCurrentTime(bool force)
 {
   //if (DEBUG) Serial.println("GetCurrentTime called");
   unsigned long timeNow = millis();
-  if (timeNow > timeToAsk || !error_getTime) { // Is it time to ask server for current time?
+  if (force || (timeNow > timeToAsk || !error_getTime)) { // Is it time to ask server for current time?
     if (DEBUG) Serial.println(" Time to ask");
     timeToAsk = timeNow + askFrequency; // Don't ask again for a while
-    if (timeToRead == 0) { // If we have not asked...
+    if (force || (timeToRead == 0)) { // If we have not asked...
       timeToRead = timeNow + 1000; // Wait one second for server to respond
       AskCurrentEpoch(); // Ask time server what is the current time?
       nextEpochTimeStamp  = millis(); // next epoch we receive is for "now".
     }
   }
 
-  if (timeToRead > 0 && timeNow > timeToRead) // Is it time to read the answer of our AskCurrentEpoch?
+  if (force || (timeToRead > 0 && timeNow > timeToRead)) // Is it time to read the answer of our AskCurrentEpoch?
   {
     // Yes, it is time to read the answer.
     ReadCurrentEpoch(); // Read the server response
     timeToRead = 0; // We have read the response, so reset for next time we need to ask for time.
   }
 
-  if (lastEpoch != 0) {  // If we don't have lastEpoch yet, return zero so we won't try to display millis on the clock
+  if (force || (lastEpoch != 0)) {  // If we don't have lastEpoch yet, return zero so we won't try to display millis on the clock
     unsigned long elapsedMillis = millis() - lastEpochTimeStamp;
     currentTime =  lastEpoch + (elapsedMillis / 1000);
   }
