@@ -194,7 +194,7 @@ void page_out(void)
       server.sendContent(" checked");
     server.sendContent("></td></tr>");
 #endif    
-     server.sendContent("</tbody></table><br><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" height=\"30\" width=\"99\"><tbody><tr><td><input name=\"SEND\" value=\"  Send  \" type=\"submit\"></td></tr></tbody></table></form><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" height=\"30\" width=\"99\"><tbody><tr><td><form method=\"get\"><input name=\"SAVE\" value=\"Save\" type=\"submit\"></form></td></tr></tbody></table></body></html>\r\n");
+     server.sendContent("</tbody></table><br><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" height=\"30\" width=\"99\"><tbody><tr><td><input name=\"SEND\" value=\" Send \" type=\"submit\"></td></tr></tbody></table></form><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" height=\"30\" width=\"99\"><tbody><tr><td><form method=\"get\"><input name=\"SAVE\" value=\" Save \" type=\"submit\"></form></td></tr></tbody></table></body></html>\r\n");
   }
 }
 
