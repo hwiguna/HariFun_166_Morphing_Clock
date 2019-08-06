@@ -1,5 +1,12 @@
 # HariFun\_166\_Morphing\_Clock modified by SnowHead
 
+----------
+
+# Attention! At the moment this fork only works for ESP8266 !
+## The search and inlucde of the suitable libraries for ESP32 is in progress 
+----------
+
+
 Read what this code primary was all about on [Instructable](https://www.instructables.com/id/Morphing-Digital-Clock/).
 
 **CHANGES BY SNOWHEAD**
