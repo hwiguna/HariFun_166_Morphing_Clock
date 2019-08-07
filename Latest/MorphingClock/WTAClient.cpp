@@ -4,6 +4,7 @@
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h> //https://github.com/tzapu/WiFiManager
 #include <ESP8266HTTPClient.h>
+#include "TinyFont.h"
 
 char wifiManagerAPName[] = "MorphClk";
 char wifiManagerAPPassword[] = "MorphClk";
@@ -121,6 +122,8 @@ WTAClient::WTAClient()
 
 void WTAClient::Setup(PxMATRIX* d)
 {
+  char tstr[32];
+  
   //-- Config --
   if (!SPIFFS.begin()) {
     Serial.println("Failed to mount FS");
@@ -257,10 +260,9 @@ void WTAClient::Setup(PxMATRIX* d)
     }
    }
 
-  //-- Military --
-  _display->setCursor(2, row2);
-  _display->print("24Hr:");
-  _display->print((military) ? "Y" : "N");
+  //-- show IP --
+  sprintf(tstr, "IP:%s", WiFi.localIP().toString().c_str());
+  TFDrawText(_display, tstr, 1, 23, _display->color565(0, 0, 255));
 
   if (shouldSaveConfig) {
     saveConfig();
@@ -328,7 +330,7 @@ unsigned long WTAClient::ReadCurrentEpoch()
 //      bool dst = root["dst"]; // true
 //      int day_of_year = root["day_of_year"]; // 213
 //      int day_of_week = root["day_of_week"]; // 4
-      const char* datetime = root["datetime"]; // "2019-08-01T12:58:40.682790-04:00"
+//      const char* datetime = root["datetime"]; // "2019-08-01T12:58:40.682790-04:00"
 //      const char* client_ip = root["client_ip"]; // "23.235.227.109"
 //      const char* abbreviation = root["abbreviation"]; // "EDT"     
 
