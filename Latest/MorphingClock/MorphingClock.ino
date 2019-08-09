@@ -108,7 +108,8 @@ void display_updater()
 #include "Digit.h"
 enum
 {
-  DIG_S0, DIG_S1, DIG_M0, DIG_M1, DIG_H0, DIG_H1, NUM_DIGITS};
+  DIG_S0, DIG_S1, DIG_M0, DIG_M1, DIG_H0, DIG_H1, NUM_DIGITS
+};
 
 Digit digit0(&display, 0, 63 - 1 - 9 * 1, 8, COL_ACT);
 Digit digit1(&display, 0, 63 - 1 - 9 * 2, 8, COL_ACT);
@@ -120,9 +121,9 @@ Digit *Digits[NUM_DIGITS] =
 { &digit0, &digit1, &digit2, &digit3, &digit4, &digit5 };
 
 //=== CLOCK ===
-#include "WTAClient.h" 
+#include "WTAClient.h"
 WTAClient wtaClient;
-unsigned long prevEpoch;
+volatile unsigned long prevEpoch;
 byte prevhh;
 byte prevmm;
 byte prevss;
@@ -130,7 +131,7 @@ byte prevss;
 void update_color(void)
 {
   COL_ACT = display.color565((brightness * mclockp->r) / 40, (brightness * mclockp->g) / 40, (brightness * mclockp->b) / 40);
-  for(int i = 0; i < NUM_DIGITS; i++)
+  for (int i = 0; i < NUM_DIGITS; i++)
     Digits[i]->SetColor(COL_ACT);
   display.fillScreen(display.color565(0, 0, 0));
   Digits[DIG_S1]->DrawColon(COL_ACT);
@@ -157,18 +158,23 @@ void page_out(void)
     server.sendContent("<tr><td><b><big>Timezone</big></b></td><td></td><td><input maxlength=\"31\" size=\"31\" name=\"TIMEZONE\" value=\"");
     server.sendContent((char*)&mclockp->timezone);
     server.sendContent("\"></td></tr><tr><td> </td><td> </td><td>See <a href=\"http://www.worldtimeapi.org/api/timezones.txt\">List</a> (\"ip\" means \"automatic\")</td></tr><tr><td> <br></td></tr>");
-        
+
 #ifdef ESP32
     server.sendContent("<tr><td><b><big>Brightness</big></b></td><td></td><td><input maxlength=\"3\" size=\"3\" name=\"BRIGHT\" value=\"");
     server.sendContent(String(mclockp->brightness));
-    server.sendContent("\"> %</td></tr><tr><td><b><big>Nightmode</font></big></b><td></td></td><td>Brightness<br><input maxlength=\"3\" size=\"3\" name=\"NMBRIGHT\" value=\"");
+    server.sendContent("\"> %</td></tr>");
+#endif
+    server.sendContent("<tr><td><b><big>Nightmode</font></big></b><td></td>");
+#ifdef ESP32
+    server.sendContent("<td>Brightness<br><input maxlength=\"3\" size=\"3\" name=\"NMBRIGHT\" value=\"");
     server.sendContent(String(mclockp->nm_brightness));
-    server.sendContent("\"> %</td><td>Start<br><input maxlength=\"3\" size=\"3\" name=\"NMSTART\" value=\"");
-    server.sendContent((mclockp->nm_start > 9)?"":"0" + String(mclockp->nm_start));
+    server.sendContent("\"> %</td>");
+#endif
+    server.sendContent("<td>Start<br><input maxlength=\"3\" size=\"3\" name=\"NMSTART\" value=\"");
+    server.sendContent(((mclockp->nm_start > 9) ? "" : "0") + String(mclockp->nm_start));
     server.sendContent("\"> h</td><td>End<br><input maxlength=\"3\" size=\"3\" name=\"NMEND\" value=\"");
-    server.sendContent((mclockp->nm_end > 9)?"":"0" + String(mclockp->nm_end));
-    server.sendContent("\"> h</td></tr><tr><td> <br>");
-#endif    
+    server.sendContent(((mclockp->nm_end > 9) ? "" : "0") + String(mclockp->nm_end));
+    server.sendContent("\"> h</td></tr><tr><td> <br></tr>");
     server.sendContent("</td></tr><tr><td><b><big>Fading</font></big></b></td><td></td><td><input maxlength=\"3\" size=\"3\" name=\"FADE\" value=\"");
     server.sendContent(String(mclockp->fade));
     server.sendContent("\"> ms</td></tr>");
@@ -180,7 +186,7 @@ void page_out(void)
     server.sendContent("\"> %</td></tr><tr><td><b><big><font color=\"#000099\">Blue</font></big></b></td><td></td><td><input maxlength=\"3\" size=\"3\" name=\"BLUE\" value=\"");
     server.sendContent(String(mclockp->b));
     server.sendContent("\"> %</td></tr>");
-#else    
+#else
     server.sendContent("<tr><td width=\"120\"><b><big><font color=\"#cc0000\">Red</font></big></b></td><td></td><td><input name=\"RED\" type=\"checkbox\" mode=\"submit\"");
     if (mclockp->r)
       server.sendContent(" checked");
@@ -193,8 +199,8 @@ void page_out(void)
     if (mclockp->b)
       server.sendContent(" checked");
     server.sendContent("></td></tr>");
-#endif    
-     server.sendContent("</tbody></table><br><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" height=\"30\" width=\"99\"><tbody><tr><td><input name=\"SEND\" value=\" Send \" type=\"submit\"></td></tr></tbody></table></form><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" height=\"30\" width=\"99\"><tbody><tr><td><form method=\"get\"><input name=\"SAVE\" value=\" Save \" type=\"submit\"></form></td></tr></tbody></table></body></html>\r\n");
+#endif
+    server.sendContent("</tbody></table><br><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" height=\"30\" width=\"99\"><tbody><tr><td><input name=\"SEND\" value=\" Send \" type=\"submit\"></td></tr></tbody></table></form><table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" height=\"30\" width=\"99\"><tbody><tr><td><form method=\"get\"><input name=\"SAVE\" value=\" Save \" type=\"submit\"></form></td></tr></tbody></table></body></html>\r\n");
   }
 }
 
@@ -212,12 +218,12 @@ void setup()
   display_ticker.attach(refreshRate, display_updater);
 #endif
 
-//#ifdef ESP32
-//  timer = timerBegin(0, 80, true);
-//  timerAttachInterrupt(timer, &display_updater, true);
-//  timerAlarmWrite(timer, 2000, true);
-//  timerAlarmEnable(timer);
-//#endif
+  //#ifdef ESP32
+  //  timer = timerBegin(0, 80, true);
+  //  timerAttachInterrupt(timer, &display_updater, true);
+  //  timerAlarmWrite(timer, 2000, true);
+  //  timerAlarmEnable(timer);
+  //#endif
 
   // read stored parameters
   EEPROM.begin(EEPROM_SIZE);
@@ -237,7 +243,11 @@ void setup()
     mclockp->brightness = 100;
     mclockp->nm_start = 0;
     mclockp->nm_end = 0;
+#ifdef ESP32
     mclockp->nm_brightness = 50;
+#else
+    mclockp->nm_brightness = 0;
+#endif
     mclockp->valid = 0xA5;
 
     eptr = (unsigned char*) mclockp;
@@ -262,11 +272,11 @@ void setup()
     unsigned int j;
     long pval;
 
-    if(server.args())
+    if (server.args())
     {
-      for(i = 0; i < server.args(); i++)
+      for (i = 0; i < server.args(); i++)
       {
-        if(server.argName(i) == "SEND")
+        if (server.argName(i) == "SEND")
         {
           *outstr = 0;
           mclockp->h24 = 0;
@@ -278,174 +288,175 @@ void setup()
 #endif
         }
       }
-      for(i = 0; i < server.args(); i++)
+      for (i = 0; i < server.args(); i++)
       {
         errno = 0;
-        if(server.argName(i) == "SAVE")
+        if (server.argName(i) == "SAVE")
         {
           unsigned char *eptr = (unsigned char*)mclockp;
 
-          for(j = 0; j < sizeof(mclock_struct); j++)
+          for (j = 0; j < sizeof(mclock_struct); j++)
             EEPROM.write(j, *(eptr++));
           EEPROM.commit();
-          if(!server.arg(i).length())
-          sprintf(outstr + strlen(outstr), "OK");
+          if (!server.arg(i).length())
+            sprintf(outstr + strlen(outstr), "OK");
         }
-        else if(server.argName(i) == "HMOD24")
+        else if (server.argName(i) == "HMOD24")
         {
-          if(server.arg(i) == "on")
+          if (server.arg(i) == "on")
             mclockp->h24 = 1;
-          else if(server.arg(i) == "off")
+          else if (server.arg(i) == "off")
             mclockp->h24 = 0;
           else
-            sprintf(outstr + strlen(outstr), "HMOD24=%s\r\n", (mclockp->h24)?"on":"off");
+            sprintf(outstr + strlen(outstr), "HMOD24=%s\r\n", (mclockp->h24) ? "on" : "off");
           prevEpoch = 0;
-          if(military != mclockp->h24)
+          if (military != mclockp->h24)
           {
             military = mclockp->h24;
             wtaClient.GetCurrentTime(true);
           }
         }
-        else if(server.argName(i) == "TIMEZONE")
+        else if (server.argName(i) == "TIMEZONE")
         {
-          if(server.arg(i).length() && !errno)
+          if (server.arg(i).length() && !errno)
           {
             strcpy((char*)&mclockp->timezone, server.arg(i).c_str());
             strcpy((char*)&timezone, (char*)&mclockp->timezone);
             wtaClient.GetCurrentTime(true);
-           }
+          }
           else
             sprintf(outstr + strlen(outstr), "TIMEZONE=%s\r\n", mclockp->timezone);
         }
-        else if(server.argName(i) == "FADE")
+        else if (server.argName(i) == "FADE")
         {
           pval = strtol(server.arg(i).c_str(), NULL, 10);
-          if(server.arg(i).length() && !errno)
+          if (server.arg(i).length() && !errno)
           {
             mclockp->fade = pval;
-            if(mclockp->fade > 120)
-            mclockp->fade = 120;
-            if(mclockp->fade < 1)
-            mclockp->fade = 1;
+            if (mclockp->fade > 120)
+              mclockp->fade = 120;
+            if (mclockp->fade < 1)
+              mclockp->fade = 1;
           }
           else
-          sprintf(outstr + strlen(outstr), "FADE=%d\r\n", mclockp->fade);
+            sprintf(outstr + strlen(outstr), "FADE=%d\r\n", mclockp->fade);
         }
 #ifdef ESP32
-        else if(server.argName(i) == "BRIGHT")
+        else if (server.argName(i) == "BRIGHT")
         {
           pval = strtol(server.arg(i).c_str(), NULL, 10);
-          if(server.arg(i).length() && !errno)
+          if (server.arg(i).length() && !errno)
           {
             mclockp->brightness = pval;
-            if(mclockp->brightness > 100)
-            mclockp->brightness = 100;
-            brightness = mclockp->brightness;
+            if (mclockp->brightness > 100)
+              mclockp->brightness = 100;
+            prevEpoch = 0;
           }
           else
-          sprintf(outstr + strlen(outstr), "BRIGHT=%d\r\n", mclockp->brightness);
+            sprintf(outstr + strlen(outstr), "BRIGHT=%d\r\n", mclockp->brightness);
         }
-        else if(server.argName(i) == "NMSTART")
+        else if (server.argName(i) == "NMBRIGHT")
         {
           pval = strtol(server.arg(i).c_str(), NULL, 10);
-          if(server.arg(i).length() && !errno)
+          if (server.arg(i).length() && !errno)
           {
-            mclockp->nm_start = abs(pval);
-            if(mclockp->nm_start > 23)
-            mclockp->nm_start = 0;
+            mclockp->nnm_brightness = pval;
+            if (mclockp->nm_brightness > 100)
+              mclockp->nm_brightness = 100;
+            prevEpoch = 0;
           }
           else
-          sprintf(outstr + strlen(outstr), "NMSTART=%d\r\n", mclockp->nm_start);
+            sprintf(outstr + strlen(outstr), "NMBRIGHT=%d\r\n", mclockp->nm_brightness);
         }
-        else if(server.argName(i) == "NMEND")
+        else if (server.argName(i) == "RED")
         {
           pval = strtol(server.arg(i).c_str(), NULL, 10);
-          if(server.arg(i).length() && !errno)
-          {
-            mclockp->nm_end = abs(pval);
-            if(mclockp->nm_end > 23)
-            mclockp->nm_end = 0;
-          }
-          else
-          sprintf(outstr + strlen(outstr), "NMEND=%d\r\n", mclockp->nm_end);
-        }
-        else if(server.argName(i) == "NMBRIGHT")
-        {
-          pval = strtol(server.arg(i).c_str(), NULL, 10);
-          if(server.arg(i).length() && !errno)
-          {
-            mclockp->nm_brightness = pval;
-            if(mclockp->nm_brightness > 100)
-            mclockp->nm_brightness = 100;
-          }
-          else
-          sprintf(outstr + strlen(outstr), "NMBRIGHT=%d\r\n", mclockp->nm_brightness);
-        }
-        else if(server.argName(i) == "RED")
-        {
-          pval = strtol(server.arg(i).c_str(), NULL, 10);
-          if(server.arg(i).length() && !errno)
+          if (server.arg(i).length() && !errno)
           {
             mclockp->r = pval;
-            if(mclockp->r > 100)
-            mclockp->r = 100;
+            if (mclockp->r > 100)
+              mclockp->r = 100;
           }
           else
-          sprintf(outstr + strlen(outstr), "RED=%d\r\n", mclockp->r);
+            sprintf(outstr + strlen(outstr), "RED=%d\r\n", mclockp->r);
         }
-        else if(server.argName(i) == "GREEN")
+        else if (server.argName(i) == "GREEN")
         {
           pval = strtol(server.arg(i).c_str(), NULL, 10);
-          if(server.arg(i).length() && !errno)
+          if (server.arg(i).length() && !errno)
           {
             mclockp->g = pval;
-            if(mclockp->g > 100)
-            mclockp->g = 100;
+            if (mclockp->g > 100)
+              mclockp->g = 100;
           }
           else
-          sprintf(outstr + strlen(outstr), "GREEN=%d\r\n", mclockp->g);
+            sprintf(outstr + strlen(outstr), "GREEN=%d\r\n", mclockp->g);
         }
-        else if(server.argName(i) == "BLUE")
+        else if (server.argName(i) == "BLUE")
         {
           pval = strtol(server.arg(i).c_str(), NULL, 10);
-          if(server.arg(i).length() && !errno)
+          if (server.arg(i).length() && !errno)
           {
             mclockp->b = pval;
-            if(mclockp->b > 100)
-            mclockp->b = 100;
+            if (mclockp->b > 100)
+              mclockp->b = 100;
           }
           else
-          sprintf(outstr + strlen(outstr), "BLUE=%d\r\n", mclockp->b);
+            sprintf(outstr + strlen(outstr), "BLUE=%d\r\n", mclockp->b);
         }
 #else
-        else if(server.argName(i) == "RED")
+        else if (server.argName(i) == "RED")
         {
-          if(server.arg(i) == "on")
+          if (server.arg(i) == "on")
             mclockp->r = 100;
-          else if(server.arg(i) == "off")
+          else if (server.arg(i) == "off")
             mclockp->r = 0;
           else
-            sprintf(outstr + strlen(outstr), "RED=%s\r\n", (mclockp->r)?"on":"off");
+            sprintf(outstr + strlen(outstr), "RED=%s\r\n", (mclockp->r) ? "on" : "off");
         }
-        else if(server.argName(i) == "GREEN")
+        else if (server.argName(i) == "GREEN")
         {
-          if(server.arg(i) == "on")
+          if (server.arg(i) == "on")
             mclockp->g = 100;
-          else if(server.arg(i) == "off")
+          else if (server.arg(i) == "off")
             mclockp->g = 0;
           else
-            sprintf(outstr + strlen(outstr), "GREEN=%s\r\n", (mclockp->g)?"on":"off");
+            sprintf(outstr + strlen(outstr), "GREEN=%s\r\n", (mclockp->g) ? "on" : "off");
         }
-        else if(server.argName(i) == "BLUE")
+        else if (server.argName(i) == "BLUE")
         {
-          if(server.arg(i) == "on")
+          if (server.arg(i) == "on")
             mclockp->b = 100;
-          else if(server.arg(i) == "off")
+          else if (server.arg(i) == "off")
             mclockp->b = 0;
           else
-            sprintf(outstr + strlen(outstr), "BLUE=%s\r\n", (mclockp->b)?"on":"off");
+            sprintf(outstr + strlen(outstr), "BLUE=%s\r\n", (mclockp->b) ? "on" : "off");
         }
- #endif
+#endif
+        else if (server.argName(i) == "NMSTART")
+        {
+          pval = strtol(server.arg(i).c_str(), NULL, 10);
+          if (server.arg(i).length() && !errno)
+          {
+            mclockp->nm_start = abs(pval);
+            if (mclockp->nm_start > 23)
+              mclockp->nm_start = 0;
+          }
+          else
+            sprintf(outstr + strlen(outstr), "NMSTART=%d\r\n", mclockp->nm_start);
+        }
+        else if (server.argName(i) == "NMEND")
+        {
+          pval = strtol(server.arg(i).c_str(), NULL, 10);
+          if (server.arg(i).length() && !errno)
+          {
+            mclockp->nm_end = abs(pval);
+            if (mclockp->nm_end > 23)
+              mclockp->nm_end = 0;
+          }
+          else
+            sprintf(outstr + strlen(outstr), "NMEND=%d\r\n", mclockp->nm_end);
+        }
       }
       *tstr2 = 0;
     }
@@ -459,17 +470,41 @@ void setup()
 
 void loop()
 {
+  int tbright = brightness;
   unsigned long epoch = wtaClient.GetCurrentTime(false);
   //Serial.print("GetCurrentTime returned epoch = ");
   //Serial.println(epoch);
   if (epoch != 0)
     wtaClient.PrintTime();
 
+  server.handleClient();            // handle HTTP-requests
+
   if (epoch != prevEpoch)
   {
     int hh = wtaClient.GetHours();
     int mm = wtaClient.GetMinutes();
     int ss = wtaClient.GetSeconds();
+
+    if (mclockp->nm_start || mclockp->nm_end)
+    {
+      if (mclockp->nm_start > mclockp->nm_end)
+      {
+        tbright = ((hh >= mclockp->nm_start) || (hh < mclockp->nm_end)) ? mclockp->nm_brightness : mclockp->brightness;
+      }
+      else
+      {
+        tbright = ((hh >= mclockp->nm_start) && (hh < mclockp->nm_end)) ? mclockp->nm_brightness : mclockp->brightness;
+      }
+    }
+    else
+      tbright = mclockp->brightness;
+
+    if (tbright != brightness)
+    {
+      brightness = tbright;
+      update_color();
+    }
+
     if (prevEpoch == 0)
     { // If we didn't have a previous time. Just draw it without morphing.
       Digits[DIG_S0]->Draw(ss % 10);
@@ -509,22 +544,10 @@ void loop()
         prevhh = hh;
       }
     }
-    if(mclockp->nm_start || mclockp->nm_end)
-    {
-      if(mclockp->nm_start > mclockp->nm_end)
-      {
-        brightness = ((hh >= mclockp->nm_start) || (hh < mclockp->nm_end))?mclockp->nm_brightness : mclockp->brightness;
-      }
-      else
-      {
-        brightness = ((hh >= mclockp->nm_start) && (hh < mclockp->nm_end))?mclockp->nm_brightness : mclockp->brightness;
-      }
-    }
     prevEpoch = epoch;
   }
 
   for (int i = 0; i < NUM_DIGITS; i++)
     Digits[i]->Morph();
-  server.handleClient();            // handle HTTP-requests
   delay(mclockp->fade);
 }
