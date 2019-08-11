@@ -1,16 +1,12 @@
 #include "Digit.h"
 
-const byte sA = 0;
-const byte sB = 1;
-const byte sC = 2;
-const byte sD = 3;
-const byte sE = 4;
-const byte sF = 5;
-const byte sG = 6;
-const int segHeight = 6;
-const int segWidth = segHeight;
-const uint16_t height = 31;
-const uint16_t width = 63;
+enum {sA, sB, sC, sD, sE, sF, sG};
+
+#define segHeight 6
+#define segWidth  segHeight
+#define height    31u
+#define width     63u
+#define _black    0
 
 byte digitBits[] = {
   B11111100, // 0 ABCDEF--
@@ -35,19 +31,25 @@ byte digitBits[] = {
 //  B100100100
 //};
 
-uint16_t black;
-
 Digit::Digit(PxMATRIX* d, byte value, uint16_t xo, uint16_t yo, uint16_t color) {
   _display = d;
   _value = value;
+  _oldvalue = 10;
+  _morphcnt = 0;
   xOffset = xo;
   yOffset = yo;
   _color = color;
 }
 
-byte Digit::Value() {
-  return _value;
+void Digit::SetValue(byte value) {
+  _value = value;
+  _morphcnt = 0;
 }
+
+void Digit::SetColor(uint16_t color) {
+  _color = color;
+}
+
 void Digit::drawPixel(uint16_t x, uint16_t y, uint16_t c)
 {
   _display->drawPixel(xOffset + x, height - (y + yOffset), c);
@@ -93,206 +95,238 @@ void Digit::Draw(byte value) {
   if (bitRead(pattern, 2)) drawSeg(sF);
   if (bitRead(pattern, 1)) drawSeg(sG);
   _value = value;
+  _oldvalue = value;
+  _morphcnt = segWidth + 2;
 }
 
 void Digit::Morph2() {
   // TWO
-  for (int i = 0; i <= segWidth; i++)
+  if (_morphcnt <= segWidth)
   {
-    if (i < segWidth) {
+   int i = _morphcnt;
+   if (i < segWidth) {
       drawPixel(segWidth - i, segHeight * 2 + 2, _color);
       drawPixel(segWidth - i, segHeight + 1, _color);
       drawPixel(segWidth - i, 0, _color);
     }
 
-    drawLine(segWidth + 1 - i, 1, segWidth + 1 - i, segHeight, black);
+    drawLine(segWidth + 1 - i, 1, segWidth + 1 - i, segHeight, _black);
     drawLine(segWidth - i, 1, segWidth - i, segHeight, _color);
-    delay(animSpeed);
+  _morphcnt++;
   }
+  else
+    _oldvalue = _value;
 }
 
 void Digit::Morph3() {
   // THREE
-  for (int i = 0; i <= segWidth; i++)
+  if (_morphcnt <= segWidth)
   {
-    drawLine(0 + i, 1, 0 + i, segHeight, black);
+    int i = _morphcnt;
+    drawLine(0 + i, 1, 0 + i, segHeight, _black);
     drawLine(1 + i, 1, 1 + i, segHeight, _color);
-    delay(animSpeed);
+  _morphcnt++;
   }
+  else
+    _oldvalue = _value;
 }
 
 void Digit::Morph4() {
   // FOUR
-  for (int i = 0; i < segWidth; i++)
+  if (_morphcnt < segWidth)
   {
-    drawPixel(segWidth - i, segHeight * 2 + 2, black); // Erase A
+    int i = _morphcnt;
+    drawPixel(segWidth - i, segHeight * 2 + 2, _black); // Erase A
     drawPixel(0, segHeight * 2 + 1 - i, _color); // Draw as F
-    drawPixel(1 + i, 0, black); // Erase D
-    delay(animSpeed);
+    drawPixel(1 + i, 0, _black); // Erase D
+  _morphcnt++;
   }
+  else
+    _oldvalue = _value;
 }
 
 void Digit::Morph5() {
   // FIVE
-  for (int i = 0; i < segWidth; i++)
+  if (_morphcnt < segWidth)
   {
-    drawPixel(segWidth + 1, segHeight + 2 + i, black); // Erase B
+    int i = _morphcnt;
+    drawPixel(segWidth + 1, segHeight + 2 + i, _black); // Erase B
     drawPixel(segWidth - i, segHeight * 2 + 2, _color); // Draw as A
     drawPixel(segWidth - i, 0, _color); // Draw D
-    delay(animSpeed);
+  _morphcnt++;
   }
+  else
+    _oldvalue = _value;
 }
 
 void Digit::Morph6() {
   // SIX
-  for (int i = 0; i <= segWidth; i++)
+  if (_morphcnt <= segWidth)
   {
+    int i = _morphcnt;
     // Move C right to left
     drawLine(segWidth - i, 1, segWidth - i, segHeight, _color);
-    if (i > 0) drawLine(segWidth - i + 1, 1, segWidth - i + 1, segHeight, black);
-    delay(animSpeed);
+    if (i > 0) drawLine(segWidth - i + 1, 1, segWidth - i + 1, segHeight, _black);
+  _morphcnt++;
   }
+  else
+    _oldvalue = _value;
 }
 
 void Digit::Morph7() {
   // SEVEN
-  for (int i = 0; i <= (segWidth + 1); i++)
+  if (_morphcnt <= (segWidth + 1))
   {
+    int i = _morphcnt;
     // Move E left to right
-    drawLine(0 + i - 1, 1, 0 + i - 1, segHeight, black);
+    drawLine(0 + i - 1, 1, 0 + i - 1, segHeight, _black);
     drawLine(0 + i, 1, 0 + i, segHeight, _color);
 
     // Move F left to right
-    drawLine(0 + i - 1, segHeight * 2 + 1, 0 + i - 1, segHeight + 2, black);
+    drawLine(0 + i - 1, segHeight * 2 + 1, 0 + i - 1, segHeight + 2, _black);
     drawLine(0 + i, segHeight * 2 + 1, 0 + i, segHeight + 2, _color);
 
     // Erase D and G gradually
-    drawPixel(1 + i, 0, black); // D
-    drawPixel(1 + i, segHeight + 1, black); // G
-    delay(animSpeed);
+    drawPixel(1 + i, 0, _black); // D
+    drawPixel(1 + i, segHeight + 1, _black); // G
+  _morphcnt++;
   }
+  else
+    _oldvalue = _value;
 }
 
 void Digit::Morph8() {
   // EIGHT
-  for (int i = 0; i <= segWidth; i++)
+  if (_morphcnt <= segWidth)
   {
+    int i = _morphcnt;
     // Move B right to left
     drawLine(segWidth - i, segHeight * 2 + 1, segWidth - i, segHeight + 2, _color);
-    if (i > 0) drawLine(segWidth - i + 1, segHeight * 2 + 1, segWidth - i + 1, segHeight + 2, black);
+    if (i > 0) drawLine(segWidth - i + 1, segHeight * 2 + 1, segWidth - i + 1, segHeight + 2, _black);
 
     // Move C right to left
     drawLine(segWidth - i, 1, segWidth - i, segHeight, _color);
-    if (i > 0) drawLine(segWidth - i + 1, 1, segWidth - i + 1, segHeight, black);
+    if (i > 0) drawLine(segWidth - i + 1, 1, segWidth - i + 1, segHeight, _black);
 
     // Gradually draw D and G
     if (i < segWidth) {
       drawPixel(segWidth - i, 0, _color); // D
       drawPixel(segWidth - i, segHeight + 1, _color); // G
     }
-    delay(animSpeed);
+  _morphcnt++;
   }
+  else
+    _oldvalue = _value;
 }
 
 void Digit::Morph9() {
   // NINE
-  for (int i = 0; i <= (segWidth + 1); i++)
+  if (_morphcnt <= (segWidth + 1))
   {
+    int i = _morphcnt;
     // Move E left to right
-    drawLine(0 + i - 1, 1, 0 + i - 1, segHeight, black);
+    drawLine(0 + i - 1, 1, 0 + i - 1, segHeight, _black);
     drawLine(0 + i, 1, 0 + i, segHeight, _color);
-    delay(animSpeed);
+  _morphcnt++;
   }
+  else
+    _oldvalue = _value;
 }
 
 void Digit::Morph0() {
   // ZERO
-  for (int i = 0; i <= segWidth; i++)
+  if (_morphcnt <= segWidth)
   {
-    if (_value==1) { // If 1 to 0, slide B to F and E to C  
+    int i = _morphcnt;
+    if (_oldvalue==1) { // If 1 to 0, slide B to F and E to C  
       // slide B to F 
       drawLine(segWidth - i, segHeight * 2+1 , segWidth - i, segHeight + 2, _color);
-      if (i > 0) drawLine(segWidth - i + 1, segHeight * 2+1, segWidth - i + 1, segHeight + 2, black);
+      if (i > 0) drawLine(segWidth - i + 1, segHeight * 2+1, segWidth - i + 1, segHeight + 2, _black);
 
       // slide E to C
       drawLine(segWidth - i, 1, segWidth - i, segHeight, _color);
-      if (i > 0) drawLine(segWidth - i + 1, 1, segWidth - i + 1, segHeight, black);
+      if (i > 0) drawLine(segWidth - i + 1, 1, segWidth - i + 1, segHeight, _black);
 
       if (i<segWidth) drawPixel(segWidth - i, segHeight * 2 + 2 , _color); // Draw A
       if (i<segWidth) drawPixel(segWidth - i, 0, _color); // Draw D
     }
     
-    if (_value==2) { // If 2 to 0, slide B to F and Flow G to C
+    if (_oldvalue==2) { // If 2 to 0, slide B to F and Flow G to C
       // slide B to F 
       drawLine(segWidth - i, segHeight * 2+1 , segWidth - i, segHeight + 2, _color);
-      if (i > 0) drawLine(segWidth - i + 1, segHeight * 2+1, segWidth - i + 1, segHeight + 2, black);
+      if (i > 0) drawLine(segWidth - i + 1, segHeight * 2+1, segWidth - i + 1, segHeight + 2, _black);
     
-      drawPixel(1+i, segHeight + 1, black); // Erase G left to right
+      drawPixel(1+i, segHeight + 1, _black); // Erase G left to right
       if (i<segWidth) drawPixel(segWidth + 1, segHeight + 1- i, _color);// Draw C
     }
 
-    if (_value==3) { // B to F, C to E
+    if (_oldvalue==3) { // B to F, C to E
       // slide B to F 
       drawLine(segWidth - i, segHeight * 2+1 , segWidth - i, segHeight + 2, _color);
-      if (i > 0) drawLine(segWidth - i + 1, segHeight * 2+1, segWidth - i + 1, segHeight + 2, black);
+      if (i > 0) drawLine(segWidth - i + 1, segHeight * 2+1, segWidth - i + 1, segHeight + 2, _black);
       
       // Move C to E
       drawLine(segWidth - i, 1, segWidth - i, segHeight, _color);
-      if (i > 0) drawLine(segWidth - i + 1, 1, segWidth - i + 1, segHeight, black);
+      if (i > 0) drawLine(segWidth - i + 1, 1, segWidth - i + 1, segHeight, _black);
 
       // Erase G from right to left
-      drawPixel(segWidth - i, segHeight + 1, black); // G
+      drawPixel(segWidth - i, segHeight + 1, _black); // G
     }
     
-    if (_value==5) { // If 5 to 0, we also need to slide F to B
+    if (_oldvalue==5) { // If 5 to 0, we also need to slide F to B
       if (i<segWidth) {
-        if (i>0) drawLine(1 + i, segHeight * 2 + 1, 1 + i, segHeight + 2, black);
+        if (i>0) drawLine(1 + i, segHeight * 2 + 1, 1 + i, segHeight + 2, _black);
         drawLine(2 + i, segHeight * 2 + 1, 2 + i, segHeight + 2, _color);
       }
     }
     
-    if (_value==5 || _value==9) { // If 9 or 5 to 0, Flow G into E
-      if (i<segWidth) drawPixel(segWidth - i, segHeight + 1, black);
+    if (_oldvalue==5 || _oldvalue==9) { // If 9 or 5 to 0, Flow G into E
+      if (i<segWidth) drawPixel(segWidth - i, segHeight + 1, _black);
       if (i<segWidth) drawPixel(0, segHeight - i, _color);
     }
-    delay(animSpeed);
+  _morphcnt++;
   }
+  else
+    _oldvalue = _value;
 }
 
 void Digit::Morph1() {
   // Zero or two to One
-  for (int i = 0; i <= (segWidth + 1); i++)
+  if (_morphcnt <= (segWidth + 1))
   {
+    int i = _morphcnt;
     // Move E left to right
-    drawLine(0 + i - 1, 1, 0 + i - 1, segHeight, black);
+    drawLine(0 + i - 1, 1, 0 + i - 1, segHeight, _black);
     drawLine(0 + i, 1, 0 + i, segHeight, _color);
 
     // Move F left to right
-    drawLine(0 + i - 1, segHeight * 2 + 1, 0 + i - 1, segHeight + 2, black);
+    drawLine(0 + i - 1, segHeight * 2 + 1, 0 + i - 1, segHeight + 2, _black);
     drawLine(0 + i, segHeight * 2 + 1, 0 + i, segHeight + 2, _color);
 
     // Gradually Erase A, G, D
-    drawPixel(1 + i, segHeight * 2 + 2, black); // A
-    drawPixel(1 + i, 0, black); // D
-    drawPixel(1 + i, segHeight + 1, black); // G
-
-    delay(animSpeed);
+    drawPixel(1 + i, segHeight * 2 + 2, _black); // A
+    drawPixel(1 + i, 0, _black); // D
+    drawPixel(1 + i, segHeight + 1, _black); // G
+  _morphcnt++;
   }
+  else
+    _oldvalue = _value;
 }
 
-void Digit::Morph(byte newValue) {
-  switch (newValue) {
-    case 2: Morph2(); break;
-    case 3: Morph3(); break;
-    case 4: Morph4(); break;
-    case 5: Morph5(); break;
-    case 6: Morph6(); break;
-    case 7: Morph7(); break;
-    case 8: Morph8(); break;
-    case 9: Morph9(); break;
-    case 0: Morph0(); break;
-    case 1: Morph1(); break;
+void Digit::Morph(void) {
+  if(_value != _oldvalue)
+  {
+    switch (_value) {
+      case 2: Morph2(); break;
+      case 3: Morph3(); break;
+      case 4: Morph4(); break;
+      case 5: Morph5(); break;
+      case 6: Morph6(); break;
+      case 7: Morph7(); break;
+      case 8: Morph8(); break;
+      case 9: Morph9(); break;
+      case 0: Morph0(); break;
+      case 1: Morph1(); break;
+    }
   }
-  _value = newValue;
 }
-
