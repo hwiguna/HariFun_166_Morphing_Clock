@@ -3,7 +3,7 @@
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h> //https://github.com/tzapu/WiFiManager
 char wifiManagerAPName[] = "MorphClk";
-char wifiManagerAPPassword[] = "HariFun";
+char wifiManagerAPPassword[] = "booga";
 
 
 //== DOUBLE-RESET DETECTOR ==
@@ -37,8 +37,8 @@ unsigned long lastEpoch; // We don't want to continually ask for epoch from time
 unsigned long lastEpochTimeStamp; // What was millis() when asked server for Epoch we are currently using?
 unsigned long nextEpochTimeStamp; // What was millis() when we asked server for the upcoming epoch
 unsigned long currentTime;
-char timezone[5] = "";
-char military[3] = ""; // 24 hour mode? Y/N
+char timezone[5] = "CHU";
+char military[3] = "N"; // 24 hour mode? Y/N
 
 const char* ntpServerName = "time.google.com"; // NTP google server
 IPAddress timeServerIP; // time.nist.gov NTP server address
@@ -79,24 +79,24 @@ bool loadConfig() {
 
   configFile.readBytes(buf.get(), size);
 
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& json = jsonBuffer.parseObject(buf.get());
+  StaticJsonDocument<200> jsonDoc;
+  auto error = deserializeJson(jsonDoc, buf.get());
 
-  if (!json.success()) {
-    Serial.println("Failed to parse config file");
+  if (error) {
+    Serial.print(F("deserializeJson() failed with code "));
+    Serial.println(error.c_str());
     return false;
   }
 
-  strcpy(timezone, json["timezone"]);
-  strcpy(military, json["military"]);
+  strcpy(timezone, jsonDoc["timezone"]);
+  strcpy(military, jsonDoc["military"]);
   return true;
 }
 
 bool saveConfig() {
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& json = jsonBuffer.createObject();
-  json["timezone"] = timezone;
-  json["military"] = military;
+  StaticJsonDocument<200> jsonDoc;
+  jsonDoc["timezone"] = timezone;
+  jsonDoc["military"] = military;
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
@@ -110,7 +110,7 @@ bool saveConfig() {
   Serial.print("military=");
   Serial.println(military);
 
-  json.printTo(configFile);
+  serializeJson(jsonDoc, configFile);
   return true;
 }
 
