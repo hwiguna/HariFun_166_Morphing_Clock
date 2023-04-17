@@ -35,7 +35,6 @@
     void PrintTime();
     
   private:
-    PxMATRIX* _display;
     void sendNTPpacket(IPAddress& address);
     void AskCurrentEpoch();
     void ReadCurrentEpoch();

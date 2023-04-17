@@ -51,9 +51,6 @@ void setup() {
   Serial.begin(9600);
   display.begin(16);
 
-  Serial.println("setting one pixel");
-  display.drawPixel(1, 1, display.color565(0, 255, 255));
-
   display_ticker.attach(0.002, display_updater);
 
   ntpClient.Setup(&display);
