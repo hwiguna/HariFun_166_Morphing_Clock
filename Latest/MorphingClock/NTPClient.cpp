@@ -1,20 +1,25 @@
-//=== WIFI MANAGER ===
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h> //https://github.com/tzapu/WiFiManager
+#include <DoubleResetDetector.h>
+#include <FS.h>
+#include <ArduinoJson.h>
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+
+#include "NTPClient.h"
+
+//=== WIFI MANAGER ===
 char wifiManagerAPName[] = "MorphClk";
-char wifiManagerAPPassword[] = "booga";
+char wifiManagerAPPassword[] = "booga12@";//This will change for final version
 
 
 //== DOUBLE-RESET DETECTOR ==
-#include <DoubleResetDetector.h>
 #define DRD_TIMEOUT 10 // Second-reset must happen within 10 seconds of first reset to be considered a double-reset
 #define DRD_ADDRESS 0 // RTC Memory Address for the DoubleResetDetector to use
 DoubleResetDetector drd(DRD_TIMEOUT, DRD_ADDRESS);
 
 //== SAVING CONFIG ==
-#include "FS.h"
-#include <ArduinoJson.h>
 bool shouldSaveConfig = false; // flag for saving data
 
 //callback notifying us of the need to save config
@@ -25,10 +30,6 @@ void saveConfigCallback () {
 
 
 //=== NTP CLIENT ===
-#include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
-#include "NTPClient.h"
-
 #define DEBUG 0
 const unsigned long askFrequency = 60*60*1000; // How frequent should we get current time? in miliseconds. 60minutes = 60*60s = 60*60*1000ms
 unsigned long timeToAsk;
@@ -90,6 +91,8 @@ bool loadConfig() {
 
   strcpy(timezone, jsonDoc["timezone"]);
   strcpy(military, jsonDoc["military"]);
+
+  Serial.println("Config loaded successfully.");
   return true;
 }
 
@@ -153,6 +156,7 @@ void NTPClient::Setup(PxMATRIX* d)
     Serial.println("Double Reset Detected");
     digitalWrite(LED_BUILTIN, LOW);
 
+    Serial.println("Displaying Wifi Info");
     _display->setCursor(1, row0);     _display->print("AP");
     _display->setCursor(1+10, row0);    _display->print(":");
     _display->setCursor(1+10+5, row0);  _display->print(wifiManagerAPName);
@@ -166,8 +170,10 @@ void NTPClient::Setup(PxMATRIX* d)
     _display->setCursor(1+3*6 -1 + 5+ 3*6, row2); _display->print(".4");
     _display->setCursor(1+3*6 -1 + 5+ 3*6 + 5 + 6, row2); _display->print(".1");
 
+    Serial.println("Starting Configuration Portal");
     wifiManager.startConfigPortal(wifiManagerAPName, wifiManagerAPPassword);
 
+    Serial.println("Clearing Wifi Info");
     _display->fillScreen(_display->color565(0, 0, 0));
   } 
   else 
@@ -220,7 +226,7 @@ void NTPClient::Setup(PxMATRIX* d)
 
 
 // send an NTP request to the time server at the given address
-unsigned long NTPClient::sendNTPpacket(IPAddress& address)
+void NTPClient::sendNTPpacket(IPAddress& address)
 {
   if (DEBUG) Serial.println("sending NTP packet...");
   // set all bytes in the buffer to 0
@@ -253,10 +259,12 @@ void NTPClient::AskCurrentEpoch()
   sendNTPpacket(timeServerIP); // send an NTP packet to a time server
 }
 
-unsigned long NTPClient::ReadCurrentEpoch()
+void NTPClient::ReadCurrentEpoch()
 {
   if (DEBUG) Serial.println("ReadCurrentEpoch called");
+  
   int cb = udp.parsePacket();
+  
   if (!cb) {
     error_getTime = false;
     if (DEBUG) Serial.println("no packet yet");
@@ -288,7 +296,7 @@ unsigned long NTPClient::ReadCurrentEpoch()
     lastEpochTimeStamp = nextEpochTimeStamp; // Now that we have a new epoch, finally update lastEpochTimeStamp so all time calculations would be offset by the time we ask for this new epoch.
 
     if (DEBUG) Serial.println(lastEpoch);
-    return lastEpoch;
+    //return lastEpoch;
   }
 }
 

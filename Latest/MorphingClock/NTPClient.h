@@ -36,8 +36,8 @@
     
   private:
     PxMATRIX* _display;
-    unsigned long sendNTPpacket(IPAddress& address);
+    void sendNTPpacket(IPAddress& address);
     void AskCurrentEpoch();
-    unsigned long ReadCurrentEpoch();
+    void ReadCurrentEpoch();
  };
 
