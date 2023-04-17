@@ -13,9 +13,6 @@ class ClockDisplay{
 
   private:
     PxMATRIX* display;
-    struct Digit{
-      
-    }
 
 };
 #endif
