@@ -6,26 +6,13 @@
 // Stephen Denne aka Datacute for DoubleResetDetector
 // Brian Lough aka WitnessMeNow for tutorials on the matrix and WifiManager
 
-#define double_buffer
+//#define double_buffer
 #include <PxMatrix.h>
-
-#ifdef ESP32
-
-#define P_LAT 22
-#define P_A 19
-#define P_B 23
-#define P_C 18
-#define P_D 5
-#define P_E 15
-#define P_OE 2
-hw_timer_t * timer = NULL;
-portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
-
-#endif
-
-#ifdef ESP8266
-
 #include <Ticker.h>
+
+#include "NTPClient.h"
+#include "Digit.h"
+
 Ticker display_ticker;
 #define P_LAT 16
 #define P_A 5
@@ -35,32 +22,16 @@ Ticker display_ticker;
 #define P_E 0
 #define P_OE 2
 
-#endif
-
 // Pins for LED MATRIX
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 
-#ifdef ESP8266
 // ISR for display refresh
 void display_updater()
 {
-  //display.displayTestPattern(70);
   display.display(70);
 }
-#endif
-
-#ifdef ESP32
-void IRAM_ATTR display_updater() {
-  // Increment the counter and set the time of ISR
-  portENTER_CRITICAL_ISR(&timerMux);
-  //isplay.display(70);
-  display.displayTestPattern(70);
-  portEXIT_CRITICAL_ISR(&timerMux);
-}
-#endif
 
 //=== SEGMENTS ===
-#include "Digit.h"
 Digit digit0(&display, 0, 63 - 1 - 9*1, 8, display.color565(0, 0, 255));
 Digit digit1(&display, 0, 63 - 1 - 9*2, 8, display.color565(0, 0, 255));
 Digit digit2(&display, 0, 63 - 4 - 9*3, 8, display.color565(0, 0, 255));
@@ -69,7 +40,6 @@ Digit digit4(&display, 0, 63 - 7 - 9*5, 8, display.color565(0, 0, 255));
 Digit digit5(&display, 0, 63 - 7 - 9*6, 8, display.color565(0, 0, 255));
 
 //=== CLOCK ===
-#include "NTPClient.h"
 NTPClient ntpClient;
 unsigned long prevEpoch;
 byte prevhh;
@@ -81,16 +51,10 @@ void setup() {
   Serial.begin(9600);
   display.begin(16);
 
-#ifdef ESP8266
-  display_ticker.attach(0.002, display_updater);
-#endif
+  Serial.println("setting one pixel");
+  display.drawPixel(1, 1, display.color565(0, 255, 255));
 
-#ifdef ESP32
-  timer = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer, &display_updater, true);
-  timerAlarmWrite(timer, 2000, true);
-  timerAlarmEnable(timer);
-#endif
+  display_ticker.attach(0.002, display_updater);
 
   ntpClient.Setup(&display);
 
@@ -102,8 +66,7 @@ void setup() {
 
 void loop() {
   unsigned long epoch = ntpClient.GetCurrentTime();
-  //Serial.print("GetCurrentTime returned epoch = ");
-  //Serial.println(epoch);
+  
   if (epoch != 0) ntpClient.PrintTime();
 
   if (epoch != prevEpoch) {
@@ -126,7 +89,7 @@ void loop() {
         int s1 = ss / 10;
         if (s0!=digit0.Value()) digit0.Morph(s0);
         if (s1!=digit1.Value()) digit1.Morph(s1);
-        //ntpClient.PrintTime();
+        
         prevss = ss;
       }
 
