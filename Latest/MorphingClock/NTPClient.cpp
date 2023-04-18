@@ -8,6 +8,7 @@
 #include <WiFiUdp.h>
 
 #include "NTPClient.h"
+#include "ClockDisplay.h"
 
 //=== WIFI MANAGER ===
 char wifiManagerAPName[] = "MorphClk";
@@ -123,7 +124,7 @@ NTPClient::NTPClient()
 }
 
 
-void NTPClient::Setup(PxMATRIX* d)
+void NTPClient::Setup(ClockDisplay* clockDisplay)
 {
   //-- Config --
   if (!SPIFFS.begin()) {
@@ -131,16 +132,6 @@ void NTPClient::Setup(PxMATRIX* d)
     return;
   }
   loadConfig();
-
-  //-- Display --
-  _display = d;
-  _display->fillScreen(_display->color565(0, 0, 0));
-  _display->setTextColor(_display->color565(0, 0, 255));
-  //_display->setFont(&FreeMono9pt7b);
-  //_display->setTextSize(1);
-  const byte row0 = 2+0*10;
-  const byte row1 = 2+1*10;
-  const byte row2 = 2+2*10;
 
   //-- WiFiManager --
   //Local intialization. Once its business is done, there is no need to keep it around
@@ -157,32 +148,20 @@ void NTPClient::Setup(PxMATRIX* d)
     digitalWrite(LED_BUILTIN, LOW);
 
     Serial.println("Displaying Wifi Info");
-    _display->setCursor(1, row0);     _display->print("AP");
-    _display->setCursor(1+10, row0);    _display->print(":");
-    _display->setCursor(1+10+5, row0);  _display->print(wifiManagerAPName);
 
-    _display->setCursor(1, row1);     _display->print("Pw");
-    _display->setCursor(1+10, row1);    _display->print(":");
-    _display->setCursor(1+10+5, row1);  _display->print(wifiManagerAPPassword);
-
-    _display->setCursor(1, row2); _display->print("192");
-    _display->setCursor(1+3*6 -1, row2); _display->print(".168");
-    _display->setCursor(1+3*6 -1 + 5+ 3*6, row2); _display->print(".4");
-    _display->setCursor(1+3*6 -1 + 5+ 3*6 + 5 + 6, row2); _display->print(".1");
+    clockDisplay->displayNetworkInfo(wifiManagerAPName, wifiManagerAPPassword, "192.168.4.1");
 
     Serial.println("Starting Configuration Portal");
     wifiManager.startConfigPortal(wifiManagerAPName, wifiManagerAPPassword);
-
-    Serial.println("Clearing Wifi Info");
-    _display->fillScreen(_display->color565(0, 0, 0));
+    
+    clockDisplay->clearDisplay();
   } 
   else 
   {
     Serial.println("No Double Reset Detected");
     digitalWrite(LED_BUILTIN, HIGH);
 
-    _display->setCursor(2, row1);
-    _display->print("Connecting");
+    clockDisplay->showText("Connecting");
 
     //fetches ssid and pass from eeprom and tries to connect
     //if it does not connect it starts an access point with the specified name wifiManagerAPName
@@ -191,9 +170,6 @@ void NTPClient::Setup(PxMATRIX* d)
   }
   
   //-- Status --
-  _display->fillScreen(_display->color565(0, 0, 0));
-  _display->setCursor(2, row0);
-  _display->print("Connected!");
   Serial.println("WiFi connected");
   
   Serial.println("IP address: ");
@@ -206,15 +182,11 @@ void NTPClient::Setup(PxMATRIX* d)
 
   //-- Timezone --
   strcpy(timezone,timeZoneParameter.getValue());
-  _display->setCursor(2, row1);
-  _display->print("Zone:");
-  _display->print(timezone);
   
   //-- Military --
   strcpy(military,militaryParameter.getValue());
-  _display->setCursor(2, row2);
-  _display->print("24Hr:");
-  _display->print(military);
+  
+  clockDisplay->displayConfigInfo(timezone, military);
 
   if (shouldSaveConfig) {
     saveConfig();

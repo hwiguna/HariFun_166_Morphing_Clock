@@ -8,12 +8,12 @@
 
 //#define double_buffer
 #include <PxMatrix.h>
-#include <Ticker.h>
 
 #include "NTPClient.h"
 #include "Digit.h"
+#include "ClockDisplay.h"
 
-Ticker display_ticker;
+//Ticker display_ticker;
 #define P_LAT 16
 #define P_A 5
 #define P_B 4
@@ -25,11 +25,7 @@ Ticker display_ticker;
 // Pins for LED MATRIX
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 
-// ISR for display refresh
-void display_updater()
-{
-  display.display(70);
-}
+ClockDisplay clockDisplay;
 
 //=== SEGMENTS ===
 Digit digit0(&display, 0, 63 - 1 - 9*1, 8, display.color565(0, 0, 255));
@@ -46,21 +42,12 @@ byte prevhh;
 byte prevmm;
 byte prevss;
 
-
 void setup() {
   Serial.begin(9600);
-  display.begin(16);
 
-  Serial.println("setting one pixel");
-  display.drawPixel(1, 1, display.color565(0, 255, 255));
+  clockDisplay = ClockDisplay(&display);
 
-  display_ticker.attach(0.002, display_updater);
-
-  ntpClient.Setup(&display);
-
-  display.fillScreen(display.color565(0, 0, 0));
-  digit1.DrawColon(display.color565(0, 0, 255));
-  digit3.DrawColon(display.color565(0, 0, 255));
+  ntpClient.Setup(&clockDisplay);
 }
 
 
@@ -73,11 +60,15 @@ void loop() {
     int hh = ntpClient.GetHours();
     int mm = ntpClient.GetMinutes();
     int ss = ntpClient.GetSeconds();
+    
     if (prevEpoch == 0) { // If we didn't have a previous time. Just draw it without morphing.
+      clockDisplay.clearDisplay();
       digit0.Draw(ss % 10);
       digit1.Draw(ss / 10);
+      digit1.DrawColon(display.color565(0, 0, 255));
       digit2.Draw(mm % 10);
       digit3.Draw(mm / 10);
+      digit3.DrawColon(display.color565(0, 0, 255));
       digit4.Draw(hh % 10);
       digit5.Draw(hh / 10);
     }
