@@ -21,13 +21,13 @@
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <PxMatrix.h>
+#include "ClockDisplay.h"
 //#include <Fonts/FreeMono9pt7b.h>
 
  class NTPClient {
   public:
     NTPClient();
-    void Setup(PxMATRIX* d);
+    void Setup(ClockDisplay* clockDisplay);
     unsigned long GetCurrentTime();
     byte GetHours();
     byte GetMinutes();
@@ -35,7 +35,6 @@
     void PrintTime();
     
   private:
-    PxMATRIX* _display;
     void sendNTPpacket(IPAddress& address);
     void AskCurrentEpoch();
     void ReadCurrentEpoch();
