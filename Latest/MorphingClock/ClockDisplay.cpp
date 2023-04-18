@@ -1,3 +1,5 @@
+#include <Ticker.h>
+
 #include "ClockDisplay.h"
 #include "TinyFont.h"
 
@@ -5,9 +7,32 @@ const byte row0 = 2+0*10;
 const byte row1 = 2+1*10;
 const byte row2 = 2+2*10;
 
+Ticker display_ticker;
+#define P_LAT 16
+#define P_A 5
+#define P_B 4
+#define P_C 15
+#define P_D 12
+#define P_E 0
+#define P_OE 2
+
+// Pins for LED MATRIX
+//PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
+
+ClockDisplay::ClockDisplay(){
+}
+
 ClockDisplay::ClockDisplay(PxMATRIX* display){
+  
   this->display = display;
-  clearDisplay();
+
+  this->display->begin(16);
+
+  display_ticker.attach_ms(2, [](PxMATRIX *displayToUse) {
+    displayToUse->display(70);
+  }, display);
+  
+  //clearDisplay();
   this->display->setTextColor(this->display->color565(0, 0, 255));
 }
 
@@ -57,3 +82,8 @@ void ClockDisplay::showText(char *text){
   display->setCursor(2, row0);
   display->print(text);
 }
+
+/*void ClockDisplay::drawPixel(uint16_t x, uint16_t y, uint16_t c)
+{
+  display->drawPixel(xOffset + x, height - (y + yOffset), c);
+}*/

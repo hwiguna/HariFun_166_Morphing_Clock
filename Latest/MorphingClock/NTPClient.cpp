@@ -124,7 +124,7 @@ NTPClient::NTPClient()
 }
 
 
-void NTPClient::Setup(PxMATRIX* d)
+void NTPClient::Setup(ClockDisplay* clockDisplay)
 {
   //-- Config --
   if (!SPIFFS.begin()) {
@@ -132,9 +132,6 @@ void NTPClient::Setup(PxMATRIX* d)
     return;
   }
   loadConfig();
-
-  //-- Display --
-  ClockDisplay clockDisplay(d);
 
   //-- WiFiManager --
   //Local intialization. Once its business is done, there is no need to keep it around
@@ -152,19 +149,19 @@ void NTPClient::Setup(PxMATRIX* d)
 
     Serial.println("Displaying Wifi Info");
 
-    clockDisplay.displayNetworkInfo(wifiManagerAPName, wifiManagerAPPassword, "192.168.4.1");
+    clockDisplay->displayNetworkInfo(wifiManagerAPName, wifiManagerAPPassword, "192.168.4.1");
 
     Serial.println("Starting Configuration Portal");
     wifiManager.startConfigPortal(wifiManagerAPName, wifiManagerAPPassword);
     
-    clockDisplay.clearDisplay();
+    clockDisplay->clearDisplay();
   } 
   else 
   {
     Serial.println("No Double Reset Detected");
     digitalWrite(LED_BUILTIN, HIGH);
 
-    clockDisplay.showText("Connecting");
+    clockDisplay->showText("Connecting");
 
     //fetches ssid and pass from eeprom and tries to connect
     //if it does not connect it starts an access point with the specified name wifiManagerAPName
@@ -189,7 +186,7 @@ void NTPClient::Setup(PxMATRIX* d)
   //-- Military --
   strcpy(military,militaryParameter.getValue());
   
-  clockDisplay.displayConfigInfo(timezone, military);
+  clockDisplay->displayConfigInfo(timezone, military);
 
   if (shouldSaveConfig) {
     saveConfig();
