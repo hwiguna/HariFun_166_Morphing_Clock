@@ -3,6 +3,8 @@
 
 #include <PxMatrix.h> 
 
+#include "Digit.h"
+
 class ClockDisplay{
   public:
     ClockDisplay();
@@ -11,9 +13,17 @@ class ClockDisplay{
     void displayConfigInfo(char timezone[], char timeFormat[]);
     void clearDisplay();
     void showText(char text[]);
+    void showTime(int hh, int mm, int ss);
+    void morphTime(int hh, int mm, int ss);
 
   private:
     PxMATRIX* display;
+    Digit digit0;
+    Digit digit1;
+    Digit digit2;
+    Digit digit3;
+    Digit digit4;
+    Digit digit5;   
     /*struct Digit{
       byte _value;
       uint16_t _color;

@@ -9,6 +9,7 @@
 //#define double_buffer
 #include <PxMatrix.h>
 
+
 #include "NTPClient.h"
 #include "Digit.h"
 #include "ClockDisplay.h"
@@ -26,14 +27,6 @@
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 
 ClockDisplay clockDisplay;
-
-//=== SEGMENTS ===
-Digit digit0(&display, 0, 63 - 1 - 9*1, 8, display.color565(0, 0, 255));
-Digit digit1(&display, 0, 63 - 1 - 9*2, 8, display.color565(0, 0, 255));
-Digit digit2(&display, 0, 63 - 4 - 9*3, 8, display.color565(0, 0, 255));
-Digit digit3(&display, 0, 63 - 4 - 9*4, 8, display.color565(0, 0, 255));
-Digit digit4(&display, 0, 63 - 7 - 9*5, 8, display.color565(0, 0, 255));
-Digit digit5(&display, 0, 63 - 7 - 9*6, 8, display.color565(0, 0, 255));
 
 //=== CLOCK ===
 NTPClient ntpClient;
@@ -60,45 +53,13 @@ void loop() {
     int hh = ntpClient.GetHours();
     int mm = ntpClient.GetMinutes();
     int ss = ntpClient.GetSeconds();
-    
     if (prevEpoch == 0) { // If we didn't have a previous time. Just draw it without morphing.
-      clockDisplay.clearDisplay();
-      digit0.Draw(ss % 10);
-      digit1.Draw(ss / 10);
-      digit1.DrawColon(display.color565(0, 0, 255));
-      digit2.Draw(mm % 10);
-      digit3.Draw(mm / 10);
-      digit3.DrawColon(display.color565(0, 0, 255));
-      digit4.Draw(hh % 10);
-      digit5.Draw(hh / 10);
+      clockDisplay.showTime(hh, mm, ss);
     }
     else
     {
       // epoch changes every miliseconds, we only want to draw when digits actually change.
-      if (ss!=prevss) { 
-        int s0 = ss % 10;
-        int s1 = ss / 10;
-        if (s0!=digit0.Value()) digit0.Morph(s0);
-        if (s1!=digit1.Value()) digit1.Morph(s1);
-        
-        prevss = ss;
-      }
-
-      if (mm!=prevmm) {
-        int m0 = mm % 10;
-        int m1 = mm / 10;
-        if (m0!=digit2.Value()) digit2.Morph(m0);
-        if (m1!=digit3.Value()) digit3.Morph(m1);
-        prevmm = mm;
-      }
-      
-      if (hh!=prevhh) {
-        int h0 = hh % 10;
-        int h1 = hh / 10;
-        if (h0!=digit4.Value()) digit4.Morph(h0);
-        if (h1!=digit5.Value()) digit5.Morph(h1);
-        prevhh = hh;
-      }
+      clockDisplay.morphTime(hh, mm, ss);
     }
     prevEpoch = epoch;
   }

@@ -8,6 +8,7 @@
 class Digit {
   
   public:
+    Digit();
     Digit(PxMATRIX* d, byte value, uint16_t xo, uint16_t yo, uint16_t color);
     void Draw(byte value);
     void Morph(byte newValue);
