@@ -7,8 +7,8 @@ const byte sD = 3;
 const byte sE = 4;
 const byte sF = 5;
 const byte sG = 6;
-const int segHeight = 6;
-const int segWidth = segHeight;
+const int smallSegHeight = 3;
+const int largeSegHeight = 6;
 const uint16_t height = 31;
 const uint16_t width = 63;
 
@@ -41,12 +41,22 @@ Digit::Digit(){
 
 }
 
-Digit::Digit(PxMATRIX* d, byte value, uint16_t xo, uint16_t yo, uint16_t color) {
+Digit::Digit(PxMATRIX* d, byte value, uint16_t xo, uint16_t yo, bool small, uint16_t color) {
   _display = d;
   _value = value;
   xOffset = xo;
   yOffset = yo;
   _color = color;
+
+  if (small){
+    segHeight = smallSegHeight;
+    segWidth = smallSegHeight;
+  }
+  else{
+    segHeight = largeSegHeight;
+    segWidth = largeSegHeight;
+  }
+
 }
 
 byte Digit::Value() {

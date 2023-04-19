@@ -18,6 +18,11 @@ Ticker display_ticker;
 #define P_E 0
 #define P_OE 2
 
+#define TIME_POS_X 63
+#define SEC_HEIGHT 3
+#define HOUR_HEIGHT 6
+#define MIN_HEIGHT HOUR_HEIGHT
+
 // Pins for LED MATRIX
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 
@@ -25,12 +30,14 @@ ClockDisplay::ClockDisplay(){
   
   display.begin(16);
 
-  digit0 = Digit(&display, 0, 63 - 1 - 9*1, 8, display.color565(0, 0, 255));
-  digit1 = Digit(&display, 0, 63 - 1 - 9*2, 8, display.color565(0, 0, 255));
-  digit2 = Digit(&display, 0, 63 - 4 - 9*3, 8, display.color565(0, 0, 255));
-  digit3 = Digit(&display, 0, 63 - 4 - 9*4, 8, display.color565(0, 0, 255));
-  digit4 = Digit(&display, 0, 63 - 7 - 9*5, 8, display.color565(0, 0, 255));
-  digit5 = Digit(&display, 0, 63 - 7 - 9*6, 8, display.color565(0, 0, 255));
+  digit0 = Digit(&display, 0, TIME_POS_X - 16*1, 14, true, display.color565(255, 255, 255));
+  digit1 = Digit(&display, 0, TIME_POS_X - 11*2, 14, true, display.color565(255, 255, 255));
+  //digit0 = Digit(&display, 0, TIME_POS_X - 1 - 9*1, 8, display.color565(0, 0, 255));
+  //digit1 = Digit(&display, 0, TIME_POS_X - 1 - 9*2, 8, display.color565(0, 0, 255));
+  digit2 = Digit(&display, 0, TIME_POS_X - 4 - 9*3, 8, false, display.color565(0, 0, 255));
+  digit3 = Digit(&display, 0, TIME_POS_X - 4 - 9*4, 8, false, display.color565(0, 0, 255));
+  digit4 = Digit(&display, 0, TIME_POS_X - 7 - 9*5, 8, false, display.color565(0, 0, 255));
+  digit5 = Digit(&display, 0, TIME_POS_X - 7 - 9*6, 8, false, display.color565(0, 0, 255));
 
   display_ticker.attach_ms(2, [](PxMATRIX *displayToUse) {
     displayToUse->display(70);
@@ -91,7 +98,7 @@ void ClockDisplay::showTime(int hh, int mm, int ss){
   clearDisplay();
   digit0.Draw(ss % 10);
   digit1.Draw(ss / 10);
-  digit1.DrawColon(display.color565(0, 0, 255));
+  //digit1.DrawColon(display.color565(0, 0, 255));
   digit2.Draw(mm % 10);
   digit3.Draw(mm / 10);
   digit3.DrawColon(display.color565(0, 0, 255));
