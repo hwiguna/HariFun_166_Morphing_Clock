@@ -9,7 +9,7 @@ class Digit {
   
   public:
     Digit();
-    Digit(PxMATRIX* d, byte value, uint16_t xo, uint16_t yo, uint16_t color);
+    Digit(PxMATRIX* d, byte value, uint16_t xo, uint16_t yo, bool small, uint16_t color);
     void Draw(byte value);
     void Morph(byte newValue);
     byte Value();
@@ -22,6 +22,9 @@ class Digit {
     uint16_t xOffset;
     uint16_t yOffset;
     int animSpeed = 30;
+    
+    int segHeight;
+    int segWidth;
 
     void drawPixel(uint16_t x, uint16_t y, uint16_t c);
     void drawFillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c);
