@@ -1,6 +1,9 @@
-// Morphing Clock by Hari Wiguna, July 2018
-//
-// Thanks to:
+// Morphing Clock - Another Remix
+//_________________________________________________________________
+// **Thanks to:**
+// Harifun for his original 6 digit morphing clock
+// lmirel for their remix of the clock
+// timz3818's remix of the clock
 // Dominic Buchstaller for PxMatrix
 // Tzapu for WifiManager
 // Stephen Denne aka Datacute for DoubleResetDetector
@@ -12,12 +15,8 @@
 
 ClockDisplay clockDisplay;
 
-//=== CLOCK ===
 NTPClient ntpClient;
 unsigned long prevEpoch;
-byte prevhh;
-byte prevmm;
-byte prevss;
 
 void setup() {
   Serial.begin(9600);
