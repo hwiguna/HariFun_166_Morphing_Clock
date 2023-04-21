@@ -27,7 +27,6 @@ void setup() {
   ntpClient.Setup(&clockDisplay);
 }
 
-
 void loop() {
   unsigned long epoch = ntpClient.GetCurrentTime();
   
@@ -37,13 +36,16 @@ void loop() {
     int hh = ntpClient.GetHours();
     int mm = ntpClient.GetMinutes();
     int ss = ntpClient.GetSeconds();
+    bool isPM = ntpClient.GetIsPM();
+    bool military = ntpClient.GetIsMilitary();
+
     if (prevEpoch == 0) { // If we didn't have a previous time. Just draw it without morphing.
-      clockDisplay.showTime(hh, mm, ss);
+      clockDisplay.showTime(hh, mm, ss, isPM, military);//Need to not hard code the 'false' here
     }
     else
     {
       // epoch changes every miliseconds, we only want to draw when digits actually change.
-      clockDisplay.morphTime(hh, mm, ss);
+      clockDisplay.morphTime(hh, mm, ss, isPM, military);
     }
     prevEpoch = epoch;
   }

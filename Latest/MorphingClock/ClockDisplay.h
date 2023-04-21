@@ -8,19 +8,22 @@
 class ClockDisplay{
   public:
     ClockDisplay();
-    void displayNetworkInfo(char accessPointName[], char accessPointPassword[], char accessPointIP[]);
-    void displayConfigInfo(char timezone[], char timeFormat[]);
+    void displayNetworkInfo(const char accessPointName[], const char accessPointPassword[], const char accessPointIP[]);
+    void displayConfigInfo(const char timezone[], const char timeFormat[]);
     void clearDisplay();
-    void showText(char text[]);
-    void showTime(int hh, int mm, int ss);
-    void morphTime(int hh, int mm, int ss);
+    void showText(const char text[]);
+    void showTime(int hh, int mm, int ss, bool isPM, bool military);
+    void morphTime(int hh, int mm, int ss, bool isPM, bool military);
 
   private:
+    uint16_t timeColour;
     Digit digit0;
     Digit digit1;
     Digit digit2;
     Digit digit3;
     Digit digit4;
-    Digit digit5;   
+    Digit digit5;  
+
+    void showAMPM(bool isPM); 
 };
 #endif
