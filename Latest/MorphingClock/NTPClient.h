@@ -32,6 +32,8 @@
     byte GetHours();
     byte GetMinutes();
     byte GetSeconds();
+    bool GetIsPM();
+    bool GetIsMilitary();
     void PrintTime();
     
   private:

@@ -313,6 +313,16 @@ byte NTPClient::GetHours()
   return hours;
 }
 
+bool NTPClient::GetIsPM()
+{
+  int hours = (currentTime  % 86400L) / 3600;
+  
+  if(hours > 12)
+    return true;
+  
+  return false;
+}
+
 byte NTPClient::GetMinutes()
 {
   return (currentTime  % 3600) / 60;
@@ -321,6 +331,14 @@ byte NTPClient::GetMinutes()
 byte NTPClient::GetSeconds()
 {
   return currentTime % 60;
+}
+
+bool NTPClient::GetIsMilitary(){
+  if (!strncmp(military, "N", strlen(military))){
+    return false;
+  }
+  
+  return true;
 }
 
 void NTPClient::PrintTime()
