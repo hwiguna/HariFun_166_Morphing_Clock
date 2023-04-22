@@ -7,8 +7,10 @@ static const byte sD = 3;
 static const byte sE = 4;
 static const byte sF = 5;
 static const byte sG = 6;
-static const int seg_height_small = 3;//could just use literals for these 3 to save memory...
+
+static const int seg_height_small = 3;//could just use literals for these 2 to save memory...
 static const int seg_height_large = 6;
+
 static const uint16_t display_height = 31;
 //static const uint16_t display_width = 63;
 
@@ -31,12 +33,12 @@ Digit::Digit(){
 
 }
 
-Digit::Digit(PxMATRIX* d, byte value, uint16_t xo, uint16_t yo, bool small, uint16_t color) {
-  display = d;
+Digit::Digit(PxMATRIX* display, byte value, uint16_t x_offset, uint16_t y_offset, bool small, uint16_t colour) {
+  this->display = display;
   current_value = value;
-  x_offset = xo;
-  y_offset = yo;
-  colour = color;
+  this->x_offset = x_offset;
+  this->y_offset = y_offset;
+  this->colour = colour;
 
   if (small){
     seg_height = seg_height_small;
