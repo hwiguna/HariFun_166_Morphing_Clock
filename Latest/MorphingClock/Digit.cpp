@@ -1,16 +1,16 @@
 #include "Digit.h"
 
-/*static const byte sA = 0;
+static const byte sA = 0;
 static const byte sB = 1;
 static const byte sC = 2;
 static const byte sD = 3;
 static const byte sE = 4;
 static const byte sF = 5;
 static const byte sG = 6;
-static const int seg_height_small = 3;
+static const int seg_height_small = 3;//could just use literals for these 3 to save memory...
 static const int seg_height_large = 6;
-static const uint16_t height = 31;
-static const uint16_t width = 63;*/
+static const uint16_t display_height = 31;
+//static const uint16_t display_width = 63;
 
 static const byte digitBits[] = {
   B11111100, // 0 ABCDEF--
@@ -25,7 +25,7 @@ static const byte digitBits[] = {
   B11110110, // 9 ABCD_FG-
 };
 
-uint16_t black;
+static const uint16_t black = 0;
 
 Digit::Digit(){
 
@@ -54,17 +54,17 @@ byte Digit::value() const{
 
 void Digit::draw_pixel(uint16_t x, uint16_t y, uint16_t c)
 {
-  display->drawPixel(x_offset + x, height - (y + y_offset), c);
+  display->drawPixel(x_offset + x, display_height - (y + y_offset), c);
 }
 
 void Digit::draw_line(uint16_t x, uint16_t y, uint16_t x2, uint16_t y2, uint16_t c)
 {
-  display->drawLine(x_offset + x, height - (y + y_offset), x_offset + x2, height - (y2 + y_offset), c);
+  display->drawLine(x_offset + x, display_height - (y + y_offset), x_offset + x2, display_height - (y2 + y_offset), c);
 }
 
 void Digit::draw_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c)
 {
-  display->fillRect(x_offset + x, height - (y + y_offset), w,h, c);
+  display->fillRect(x_offset + x, display_height - (y + y_offset), w,h, c);
 }
 
 void Digit::draw_colon(uint16_t c)

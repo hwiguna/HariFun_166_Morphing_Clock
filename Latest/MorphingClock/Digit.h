@@ -26,18 +26,6 @@ class Digit {
     int seg_height;
     int seg_width;
 
-    static const byte sA = 0;
-    static const byte sB = 1;
-    static const byte sC = 2;
-    static const byte sD = 3;
-    static const byte sE = 4;
-    static const byte sF = 5;
-    static const byte sG = 6;
-    static const int seg_height_small = 3;
-    static const int seg_height_large = 6;
-    static const uint16_t height = 31;
-    static const uint16_t width = 63;
-
     void draw_pixel(uint16_t x, uint16_t y, uint16_t c);
     void draw_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c);
     void draw_line(uint16_t x, uint16_t y, uint16_t x2, uint16_t y2, uint16_t c);
