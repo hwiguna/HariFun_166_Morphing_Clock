@@ -21,6 +21,12 @@ NTPClient ntpClient;
 unsigned long prevEpoch;
 
 int weather_refresh_interval_mins = 1; // TODO: move to config
+float weather_current_temp = -1000;
+float weatherMaxTemp = -1000;
+float weather_min_temp = -1000;
+float weatherFeelsLike = -1000;
+float weatherWindSpeed = -1000; 
+int weatherCondIndex = -1;  //-1 - undefined, 0 - unk, 1 - sunny, 2 - cloudy, 3 - overcast, 4 - rainy, 5 - thunders, 6 - snow
 
 void setup() {
   Serial.begin(9600);
@@ -29,7 +35,8 @@ void setup() {
 
   ntpClient.Setup(&clockDisplay);
 
-  //getWeather();
+  get_weather();
+  clockDisplay.show_weather(weather_current_temp, weather_min_temp);
 }
 
 void loop() {
@@ -52,8 +59,10 @@ void loop() {
       clockDisplay.morphTime(hh, mm, ss, isPM, military);
     }
 
-   // if(ss == 30 && (mm % weather_refresh_interval_mins == 0))
-    //    getWeather();
+    if(ss == 30 && (mm % weather_refresh_interval_mins == 0)){
+      get_weather();
+      clockDisplay.show_weather(weather_current_temp, weather_min_temp);
+    }
 
     prevEpoch = epoch;
   }
@@ -65,16 +74,10 @@ char weatherServer[] = "api.openweathermap.org";
 
 WiFiClient client;
 
-int tempMin = -10000;
-int tempMax = -10000;
-int tempM = -10000;
-int presM = -10000;
-int humiM = -10000;
-int weatherCondIndex = -1;  //-1 - undefined, 0 - unk, 1 - sunny, 2 - cloudy, 3 - overcast, 4 - rainy, 5 - thunders, 6 - snow
 
 String condS = "";
 
-void getWeather()
+void get_weather()
 {
   Serial.print("getWeather: Connecting to weather server ");
   Serial.println(weatherServer);
@@ -89,11 +92,10 @@ void getWeather()
     client.print(weatherLocation); 
     client.print("&appid=");
     client.print(weatherAPIKey); 
-    client.println("&cnt=1"); 
-    //(*u_metric=='Y')?client.println ("&units=metric"):client.println ("&units=imperial");
+    client.println("&cnt=1&units=metric"); 
     client.print("Host: ");
     client.println(weatherServer); 
-    client.print("Connection: close");
+    client.println("Connection: close");
     client.println(); 
   } 
   else 
@@ -104,9 +106,6 @@ void getWeather()
   
   delay (1000);
   
-  //String sval = "";
-  //int bT, bT2;
-  //do your best
   String weatherInfo = client.readStringUntil('\n');
   if (!weatherInfo.length ())
     Serial.println (F("getWeather: unable to retrieve weather data"));
@@ -125,20 +124,20 @@ void getWeather()
     }
 
     const char *weatherCondition = doc[F("weather")][0][F("main")];
-    const float weatherCurrentTemp = doc[F("main")][F("temp")];
-    const float weatherMaxTemp = doc[F("main")][F("temp_max")];
-    const float weatherMinTemp = doc[F("main")][F("temp_min")];
-    const float weatherFeelsLike = doc[F("main")][F("feels_like")];
-    const float weatherWindSpeed = doc[F("wind")][F("speed")];
+    weather_current_temp = doc[F("main")][F("temp")];
+    weatherMaxTemp = doc[F("main")][F("temp_max")];
+    weather_min_temp = doc[F("main")][F("temp_min")];
+    weatherFeelsLike = doc[F("main")][F("feels_like")];
+    weatherWindSpeed = doc[F("wind")][F("speed")];
 
     Serial.print(F("Weather: "));
     Serial.println(weatherCondition);
     Serial.print(F("Temp: "));
-    Serial.println(weatherCurrentTemp);
+    Serial.println(weather_current_temp);
     Serial.print(F("Temp Max: "));
     Serial.println(weatherMaxTemp);
     Serial.print(F("Temp Min: "));
-    Serial.println(weatherMinTemp);
+    Serial.println(weather_min_temp);
     Serial.print(F("Feels Like: "));
     Serial.println(weatherFeelsLike);
     Serial.print(F("Wind Speed: "));
@@ -167,3 +166,5 @@ int get_condition_index(const char *weatherCondition){
 
   return conditionIndex;
 }
+
+

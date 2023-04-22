@@ -14,6 +14,7 @@ class ClockDisplay{
     void showText(const char text[]);
     void showTime(int hh, int mm, int ss, bool isPM, bool military);
     void morphTime(int hh, int mm, int ss, bool isPM, bool military);
+    void show_weather(float current_temp, float min_temp);
 
   private:
     uint16_t timeColour;
