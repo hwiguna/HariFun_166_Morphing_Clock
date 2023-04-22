@@ -10,36 +10,36 @@ class Digit {
   public:
     Digit();
     Digit(PxMATRIX* d, byte value, uint16_t xo, uint16_t yo, bool small, uint16_t color);
-    void Draw(byte value);
-    void Morph(byte newValue);
-    byte Value();
-    void DrawColon(uint16_t c);
+    void draw(byte value);
+    void morph(byte new_value);
+    byte value() const;
+    void draw_colon(uint16_t c);
     
   private:
-    PxMATRIX* _display;
-    byte _value;
-    uint16_t _color;
-    uint16_t xOffset;
-    uint16_t yOffset;
-    int animSpeed = 30;
+    PxMATRIX* display;
+    byte current_value;
+    uint16_t colour;
+    uint16_t x_offset;
+    uint16_t y_offset;
+    int anim_speed = 30;
     
-    int segHeight;
-    int segWidth;
+    int seg_height;
+    int seg_width;
 
-    void drawPixel(uint16_t x, uint16_t y, uint16_t c);
-    void drawFillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c);
-    void drawLine(uint16_t x, uint16_t y, uint16_t x2, uint16_t y2, uint16_t c);
-    void drawSeg(byte seg);
-    void Morph2();
-    void Morph3();
-    void Morph4();
-    void Morph5();
-    void Morph6();
-    void Morph7();
-    void Morph8();
-    void Morph9();
-    void Morph0();
-    void Morph1();
+    void draw_pixel(uint16_t x, uint16_t y, uint16_t c);
+    void draw_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c);
+    void draw_line(uint16_t x, uint16_t y, uint16_t x2, uint16_t y2, uint16_t c);
+    void draw_seg(byte seg);
+    void morph2();
+    void morph3();
+    void morph4();
+    void morph5();
+    void morph6();
+    void morph7();
+    void morph8();
+    void morph9();
+    void morph0();
+    void morph1();
 };
 
 #endif

@@ -96,13 +96,13 @@ void ClockDisplay::showText(const char *text){
 
 void ClockDisplay::showTime(int hh, int mm, int ss, bool isPM, bool military){
   clearDisplay();
-  digit0.Draw(ss % 10);
-  digit1.Draw(ss / 10);
-  digit2.Draw(mm % 10);
-  digit3.Draw(mm / 10);
-  digit3.DrawColon(timeColour);
-  digit4.Draw(hh % 10);
-  digit5.Draw(hh / 10);
+  digit0.draw(ss % 10);
+  digit1.draw(ss / 10);
+  digit2.draw(mm % 10);
+  digit3.draw(mm / 10);
+  digit3.draw_colon(timeColour);
+  digit4.draw(hh % 10);
+  digit5.draw(hh / 10);
 
   if (!military){
     
@@ -114,18 +114,18 @@ void ClockDisplay::morphTime(int hh, int mm, int ss, bool isPM, bool military){
   
   int s0 = ss % 10;
   int s1 = ss / 10;
-  if (s0!=digit0.Value()) digit0.Morph(s0);
-  if (s1!=digit1.Value()) digit1.Morph(s1);
+  if (s0!=digit0.value()) digit0.morph(s0);
+  if (s1!=digit1.value()) digit1.morph(s1);
         
   int m0 = mm % 10;
   int m1 = mm / 10;
-  if (m0!=digit2.Value()) digit2.Morph(m0);
-  if (m1!=digit3.Value()) digit3.Morph(m1);
+  if (m0!=digit2.value()) digit2.morph(m0);
+  if (m1!=digit3.value()) digit3.morph(m1);
       
   int h0 = hh % 10;
   int h1 = hh / 10;
-  if (h0!=digit4.Value()) digit4.Morph(h0);
-  if (h1!=digit5.Value()) digit5.Morph(h1);
+  if (h0!=digit4.value()) digit4.morph(h0);
+  if (h1!=digit5.value()) digit5.morph(h1);
 
   if (military){
     showAMPM(isPM);
