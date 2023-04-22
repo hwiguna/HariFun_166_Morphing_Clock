@@ -55,13 +55,10 @@ void configModeCallback (WiFiManager *myWiFiManager) {
   Serial.println("Entered config mode");
   Serial.println(WiFi.softAPIP());
 
-  // You could indicate on your screen or by an LED you are in config mode here
-
-  // We don't want the next time the boar resets to be considered a double reset
+   // We don't want the next time the board resets to be considered a double reset
   // so we remove the flag
   drd.stop();
 }
-
 
 bool loadConfig() {
   File configFile = SPIFFS.open("/config.json", "r");
@@ -89,7 +86,7 @@ bool loadConfig() {
     Serial.println(error.c_str());
     return false;
   }
-
+  
   strcpy(timezone, jsonDoc["timezone"]);
   strcpy(military, jsonDoc["military"]);
 
@@ -118,11 +115,9 @@ bool saveConfig() {
   return true;
 }
 
-
 NTPClient::NTPClient()
 {
 }
-
 
 void NTPClient::Setup(ClockDisplay* clockDisplay)
 {
