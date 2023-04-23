@@ -697,7 +697,7 @@ TFFace tinyFont[] =
     {
       0b00001110,
       0b00000010,
-      0b00001110,
+      0b00000100,
       0b00001000,
       0b00001110,
     },
@@ -706,11 +706,11 @@ TFFace tinyFont[] =
   {
     //pixels
     {
-      0b00000000,
-      0b00000000,
-      0b00000000,
-      0b00000000,
-      0b00000000,
+      0b00001100,
+      0b00001000,
+      0b00001000,
+      0b00001000,
+      0b00001100,
     },
   },
   //
@@ -728,19 +728,19 @@ TFFace tinyFont[] =
   {
     //pixels
     {
-      0b00000000,
-      0b00000000,
-      0b00000000,
-      0b00000000,
-      0b00000000,
+      0b00000110,
+      0b00000010,
+      0b00000010,
+      0b00000010,
+      0b00000110,
     },
   },
   //^
   {
     //pixels
     {
-      0b00000000,
-      0b00000000,
+      0b00001000,
+      0b00010100,
       0b00000000,
       0b00000000,
       0b00000000,
@@ -754,18 +754,18 @@ TFFace tinyFont[] =
       0b00000000,
       0b00000000,
       0b00000000,
-      0b00000000,
+      0b00001110,
     },
   },
   //`
   {
     //pixels
     {
-      0b00001010,
-      0b00011111,
-      0b00011111,
-      0b00001110,
+      0b00001000,
       0b00000100,
+      0b00000000,
+      0b00000000,
+      0b00000000,
     },
   },
   //a
@@ -898,6 +898,6 @@ void TFDrawText (PxMATRIX* d, String text, char xo, char yo, int col){
   text.getBytes (lbuf, TFLINE_LEN);
   for (; *lptr; lptr++, xo += TF_COLS)
   {
-    TFDrawChar (d, *lptr, xo, yo, col);
+    TFDrawChar (d, toupper(*lptr), xo, yo, col);//TODO: Forcing to uppercase since the lower case chars aren't defined yet.
   }
 }

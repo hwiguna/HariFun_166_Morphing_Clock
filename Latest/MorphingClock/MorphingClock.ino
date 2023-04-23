@@ -20,13 +20,17 @@ ClockDisplay clock_display;
 NTPClient ntp_client;
 unsigned long prev_epoch;
 
+static const uint8_t weather_conditions_len = 50;
+
 int weather_refresh_interval_mins = 1; // TODO: move to config
 float weather_current_temp = -1000;
 float weather_max_temp = -1000;
 float weather_min_temp = -1000;
 float weather_feels_like_temp = -1000;
 float weather_wind_speed = -1000; 
-int weather_cond__index = -1;  //-1 - undefined, 0 - unk, 1 - sunny, 2 - cloudy, 3 - overcast, 4 - rainy, 5 - thunders, 6 - snow
+char weather_conditions[weather_conditions_len];
+
+
 
 void setup() {
   Serial.begin(9600);
@@ -36,7 +40,7 @@ void setup() {
   ntp_client.Setup(&clock_display);
 
   get_weather();
-  clock_display.show_weather(weather_current_temp, weather_min_temp, weather_max_temp, weather_feels_like_temp);
+  clock_display.show_weather(weather_current_temp, weather_min_temp, weather_max_temp, weather_feels_like_temp, weather_conditions);
 }
 
 void loop() {
@@ -61,8 +65,19 @@ void loop() {
 
     if(current_seconds == 30 && (current_mins % weather_refresh_interval_mins == 0)){
       get_weather();
-      clock_display.show_weather(weather_current_temp, weather_min_temp, weather_max_temp, weather_feels_like_temp);
+      clock_display.show_weather(weather_current_temp, weather_min_temp, weather_max_temp, weather_feels_like_temp, weather_conditions);
     }
+
+    //weather animations
+    /*if ((cm - last) > 150)
+    {
+      //Serial.println(millis() - last);
+      last = cm;
+      i++;
+      
+      draw_animations (i);
+      
+    }*/
 
     prev_epoch = epoch;
   }
@@ -123,7 +138,11 @@ void get_weather()
       return;
     }
 
-    const char *weather_condition = weather_json[F("weather")][0][F("main")];
+//TODO: may want to make sure that the values are there - could crash
+
+    const char *weather_conditions_temp = weather_json[F("weather")][0][F("main")];
+    strncpy(weather_conditions, weather_conditions_temp, weather_conditions_len);
+    
     weather_current_temp = weather_json[F("main")][F("temp")];
     weather_max_temp = weather_json[F("main")][F("temp_max")];
     weather_min_temp = weather_json[F("main")][F("temp_min")];
@@ -131,7 +150,7 @@ void get_weather()
     weather_wind_speed = weather_json[F("wind")][F("speed")];
 
     Serial.print(F("Weather: "));
-    Serial.println(weather_condition);
+    Serial.println(weather_conditions);
     Serial.print(F("Temp: "));
     Serial.println(weather_current_temp);
     Serial.print(F("Temp Max: "));
@@ -142,29 +161,9 @@ void get_weather()
     Serial.println(weather_feels_like_temp);
     Serial.print(F("Wind Speed: "));
     Serial.println(weather_wind_speed);
-  
-    weather_cond__index = get_condition_index(weather_condition); 
   }
 }
 
-int get_condition_index(const char *weather_condition){
-  int condition_index = 0;
-  
-  if (strncmp(weather_condition, "Clear", strlen(weather_condition)))
-    condition_index = 1;
-  else if (strncmp(weather_condition, "Clouds", strlen(weather_condition)))
-    condition_index = 2;
-  else if (strncmp(weather_condition, "Overcast", strlen(weather_condition)))
-    condition_index = 3;
-  else if (strncmp(weather_condition, "Rain", strlen(weather_condition)) || 
-           strncmp(weather_condition, "Drizzle", strlen(weather_condition)))
-   condition_index = 4;
-  else if (strncmp(weather_condition, "Thunderstorm", strlen(weather_condition)))
-    condition_index = 5;
-  else if (strncmp(weather_condition, "Snow", strlen(weather_condition)))
-    condition_index = 6;
 
-  return condition_index;
-}
 
 

@@ -11,21 +11,21 @@
 #define debug_print(...) \
             do { if (DEBUG) Serial.print(__VA_ARGS__); } while (0)
 
-void DrawIcon (PxMATRIX* d, int *ico, char xo, char yo, int cols, int rows)
+void draw_icon(PxMATRIX* d, int *ico, char xo, char yo, int cols, int rows)
 {
-  debug_print ("draw icon ");
-  debug_print (cols);
-  debug_print (" x ");
-  debug_print (rows);
-  debug_print (": ");
+  debug_print("draw icon ");
+  debug_print(cols);
+  debug_print(" x ");
+  debug_print(rows);
+  debug_print(": ");
   int i, j;
   for (i = 0; i < rows; i++)
   {
     for (j = 0; j < cols; j++)
     {
-      d->drawPixel (xo + j, yo + i, ico[i * cols + j]);
-      debug_print (ico[i * cols + j]);
-      debug_print (", ");
+      d->drawPixel(xo + j, yo + i, ico[i * cols + j]);
+      debug_print(ico[i * cols + j]);
+      debug_print(", ");
     }
   }
   debug_println ();
