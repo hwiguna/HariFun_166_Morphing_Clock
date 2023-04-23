@@ -13,7 +13,7 @@
  * icons set
  */
 //icons 10x5: 10 cols, 5 rows
-int moony_ico [50] = {
+/*int moony_ico [50] = {
   //3 nuances: 0x18c3 < 0x3186 < 0x4a49
   0x0000, 0x4a49, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
   0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x18c3,
@@ -206,11 +206,11 @@ int *ovct_ani[] = {ovrcst_ico, ovrcst1_ico, ovrcst2_ico, ovrcst1_ico, ovrcst2_ic
 int *rain_ani[] = {rain_ico, rain1_ico, rain2_ico, rain3_ico, rain4_ico};
 int *thun_ani[] = {thndr_ico, rain1_ico, rain2_ico, rain3_ico, rain4_ico};
 int *snow_ani[] = {snow_ico, snow1_ico, snow2_ico, snow3_ico, snow4_ico};
-int *mony_ani[] = {moony_ico, moony1_ico, moony2_ico, moony1_ico, moony2_ico};
+int *mony_ani[] = {moony_ico, moony1_ico, moony2_ico, moony1_ico, moony2_ico};*/
 
 
 
-void DrawIcon (PxMATRIX* d, int *ico, char xo, char yo, int cols, int rows);
+void draw_icon(PxMATRIX* d, int *ico, char xo, char yo, int cols, int rows);
 
 #endif
 
