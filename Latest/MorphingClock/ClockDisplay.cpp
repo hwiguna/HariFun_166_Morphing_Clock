@@ -5,247 +5,191 @@
 #include "TinyFont.h"
 #include "Digit.h"
 
-static const byte row0 = 2+0*10;
-static const byte row1 = 2+1*10;
-static const byte row2 = 2+2*10;
+#define DEBUG
+
+static const byte row_0 = 2+0*10;
+static const byte row_1 = 2+1*10;
+static const byte row_2 = 2+2*10;
 
 Ticker display_ticker;
-#define P_LAT 16
-#define P_A 5
-#define P_B 4
-#define P_C 15
-#define P_D 12
-#define P_E 0
-#define P_OE 2
-
-#define TIME_POS_X 63
-#define SEC_HEIGHT 3
-#define HOUR_HEIGHT 6
-#define MIN_HEIGHT HOUR_HEIGHT
 
 // Pins for LED MATRIX
-PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
+PxMATRIX display(64, 32, 16, 2, 5, 4, 15, 12, 0);
 
 ClockDisplay::ClockDisplay(){
   
-  timeColour = display.color565(0, 255, 255);
+  time_colour = display.color565(0, 255, 255);
 
   display.begin(16);
 
-  digit0 = Digit(&display, 0, TIME_POS_X - 16*1, 14, true, timeColour);
-  digit1 = Digit(&display, 0, TIME_POS_X - 11*2, 14, true, timeColour);
-  digit2 = Digit(&display, 0, TIME_POS_X - 4 - 9*3, 8, false, timeColour);
-  digit3 = Digit(&display, 0, TIME_POS_X - 4 - 9*4, 8, false, timeColour);
-  digit4 = Digit(&display, 0, TIME_POS_X - 7 - 9*5, 8, false, timeColour);
-  digit5 = Digit(&display, 0, TIME_POS_X - 7 - 9*6, 8, false, timeColour);
+  digit_0 = Digit(&display, 0, 63 - 16*1, 14, true, time_colour);
+  digit_1 = Digit(&display, 0, 63 - 11*2, 14, true, time_colour);
+  digit_2 = Digit(&display, 0, 63 - 4 - 9*3, 8, false, time_colour);
+  digit_3 = Digit(&display, 0, 63 - 4 - 9*4, 8, false, time_colour);
+  digit_4 = Digit(&display, 0, 63 - 7 - 9*5, 8, false, time_colour);
+  digit_5 = Digit(&display, 0, 63 - 7 - 9*6, 8, false, time_colour);
 
-  display_ticker.attach_ms(2, [](PxMATRIX *displayToUse) {
-    displayToUse->display(70);
+  display_ticker.attach_ms(2, [](PxMATRIX *display_to_use) {
+    display_to_use->display(70);
   }, &display);
   
-  //clearDisplay();
-  display.setTextColor(timeColour);
+  //clear_display();
+  display.setTextColor(time_colour);
 }
 
-void ClockDisplay::displayNetworkInfo(const char accessPointName[], const char accessPointPassword[], const char accessPointIP[]){
-  clearDisplay();
-  display.setCursor(1, row0); 
+void ClockDisplay::display_network_info(const char access_point_name[], const char access_point_password[], const char access_point_ip[]){
+  clear_display();
+  display.setCursor(1, row_0); 
   display.print("AP");
-  display.setCursor(1+10, row0); 
+  display.setCursor(1+10, row_0); 
   display.print(":");
-  display.setCursor(1+10+5, row0); 
-  display.print(accessPointName);
+  display.setCursor(1+10+5, row_0); 
+  display.print(access_point_name);
 
-  display.setCursor(1, row1); 
+  display.setCursor(1, row_1); 
   display.print("Pw");
-  display.setCursor(1+10, row1); 
+  display.setCursor(1+10, row_1); 
   display.print(":");
-  display.setCursor(1+10+5, row1); 
-  display.print(accessPointPassword);
+  display.setCursor(1+10+5, row_1); 
+  display.print(access_point_password);
 
-  display.setCursor(1, row2); 
+  display.setCursor(1, row_2); 
   display.print("IP");
-  display.setCursor(1+10, row2); 
+  display.setCursor(1+10, row_2); 
   display.print(":");
-  TFDrawText (&display, accessPointIP, 1+10+5, row2 + 1, timeColour);
+  TFDrawText (&display, access_point_ip, 1+10+5, row_2 + 1, time_colour);
 }
 
-void ClockDisplay::displayConfigInfo(const char timezone[], const char timeFormat[]){
-  clearDisplay();
-  display.setCursor(1, row0); 
+void ClockDisplay::display_config_info(const char timezone[], const char time_format[]){
+  clear_display();
+  display.setCursor(1, row_0); 
   display.print("Connected!");
 
-  display.setCursor(1, row1); 
+  display.setCursor(1, row_1); 
   display.print("Zone:");
   display.print(timezone);
 
-  display.setCursor(1, row2); 
+  display.setCursor(1, row_2); 
   display.print("Military:");
-  display.print(timeFormat);
+  display.print(time_format);
 }
 
-void ClockDisplay::clearDisplay(){
+void ClockDisplay::clear_display(){
   display.fillScreen(display.color565(0, 0, 0));
 }
 
-void ClockDisplay::showText(const char *text){
-  clearDisplay();
-  display.setCursor(2, row0);
+void ClockDisplay::show_text(const char *text){
+  clear_display();
+  display.setCursor(2, row_0);
   display.print(text);
 }
 
-void ClockDisplay::showTime(int hh, int mm, int ss, bool isPM, bool military){
-  clearDisplay();
-  digit0.draw(ss % 10);
-  digit1.draw(ss / 10);
-  digit2.draw(mm % 10);
-  digit3.draw(mm / 10);
-  digit3.draw_colon(timeColour);
-  digit4.draw(hh % 10);
-  digit5.draw(hh / 10);
+void ClockDisplay::show_time(int hh, int mm, int ss, bool is_pm, bool military){
+  clear_display();
+  digit_0.draw(ss % 10);
+  digit_1.draw(ss / 10);
+  digit_2.draw(mm % 10);
+  digit_3.draw(mm / 10);
+  digit_3.draw_colon(time_colour);
+  digit_4.draw(hh % 10);
+  digit_5.draw(hh / 10);
 
   if (!military){
     
-    showAMPM(isPM);
+    show_ampm(is_pm);
   }
 }
 
-void ClockDisplay::morphTime(int hh, int mm, int ss, bool isPM, bool military){
+void ClockDisplay::morph_time(int hh, int mm, int ss, bool is_pm, bool military){
   
   int s0 = ss % 10;
   int s1 = ss / 10;
-  if (s0!=digit0.value()) digit0.morph(s0);
-  if (s1!=digit1.value()) digit1.morph(s1);
+  if (s0!=digit_0.value()) digit_0.morph(s0);
+  if (s1!=digit_1.value()) digit_1.morph(s1);
         
   int m0 = mm % 10;
   int m1 = mm / 10;
-  if (m0!=digit2.value()) digit2.morph(m0);
-  if (m1!=digit3.value()) digit3.morph(m1);
+  if (m0!=digit_2.value()) digit_2.morph(m0);
+  if (m1!=digit_3.value()) digit_3.morph(m1);
       
   int h0 = hh % 10;
   int h1 = hh / 10;
-  if (h0!=digit4.value()) digit4.morph(h0);
-  if (h1!=digit5.value()) digit5.morph(h1);
+  if (h0!=digit_4.value()) digit_4.morph(h0);
+  if (h1!=digit_5.value()) digit_5.morph(h1);
 
   if (military){
-    showAMPM(isPM);
+    show_ampm(is_pm);
   }
 }
 
-void ClockDisplay::showAMPM(bool isPM){
-  if (isPM){
-    TFDrawText (&display, "PM", 44, 19, timeColour);
+void ClockDisplay::show_ampm(bool is_pm){
+  if (is_pm){
+    TFDrawText (&display, F("PM"), 44, 19, time_colour);
   }
   else{
-    TFDrawText (&display, "AM", 44, 19, timeColour);
+    TFDrawText (&display, F("AM"), 44, 19, time_colour);
   }
 }
 
-int xo = 1, yo = 26;
+void ClockDisplay::show_weather(float current_temp, float min_temp, float max_temp, float feels_like_temp){
+  uint16_t white = display.color565 (255, 255, 255);
+  uint16_t red = display.color565 (255, 0, 0);
+  uint16_t green = display.color565 (0, 255, 0);
+  uint16_t blue = display.color565 (0, 0, 255);
+  uint16_t dark_grey = display.color565 (30, 30, 30);
+  
+  uint8_t x_offset = 0;
+  uint8_t y_offset = 1;
 
-void ClockDisplay::show_weather(float current_temp, float min_temp){
-  int cc_wht = display.color565 (255, 255, 255);
-  int cc_red = display.color565 (255, 0, 0);
-  int cc_grn = display.color565 (0, 255, 0);
-  int cc_blu = display.color565 (0, 0, 255);
-  int cc_dgr = display.color565 (30, 30, 30);
-  
-  Serial.println ("showing the weather");
-  xo = 0; yo = 1;
-  TFDrawText (&display, String("                "), xo, yo, cc_dgr);
-  
+#ifdef DEBUG
+  Serial.print("showing the weather ");
+  Serial.print(current_temp);
+  Serial.print(" ");
+  Serial.print(feels_like_temp);
+  Serial.print(" ");
+  Serial.print(min_temp);
+  Serial.print(" ");
+  Serial.println(max_temp);
+#endif
+ 
   if (current_temp == -10000)
   {
-    Serial.println ("draw_weather: No weather data available");
+    Serial.println (F("draw_weather: No weather data available"));
   }
   else
   {
-    int lcc = cc_red;
-    
-    if (current_temp < 26)
-      lcc = cc_grn;
-    if (current_temp < 18)
-      lcc = cc_blu;
-    if (current_temp < 6)
-      lcc = cc_wht;
-    
-    //
-    int current_temp_round = round(current_temp);
-    String lstr = String(current_temp_round) + String("C");
-    Serial.print("temperature: ");
-    Serial.println (lstr);
-    TFDrawText(&display, lstr, xo, yo, lcc);
-    
-    xo = 0*TF_COLS; yo = 26;
-    TFDrawText(&display, "   ", xo, yo, 0);
-    int min_temp_round = round(min_temp);
-    lstr = String(min_temp_round);// + String((*u_metric=='Y')?"C":"F");
-    //blue if negative
-    int ct = cc_dgr;
-    if (min_temp < 0)
-    {
-      ct = cc_blu;
-      lstr = String(-min_temp);// + String((*u_metric=='Y')?"C":"F");
-    }
-    Serial.print("temp min: ");
-    Serial.println(lstr);
-    TFDrawText(&display, lstr, xo, yo, ct);
+    show_temp(current_temp, 0, 1); //top left
+    show_temp(feels_like_temp, 55, 1); // top right
+    show_temp(min_temp, 0, 26); // bottom left
+    show_temp(max_temp, 55, 26); // bottom right
 
     //weather conditions
-    //-humidity
-    /*lcc = cc_red;
-    if (humiM < 65)
-      lcc = cc_grn;
-    if (humiM < 35)
-      lcc = cc_blu;
-    if (humiM < 15)
-      lcc = cc_wht;
-    lstr = String (humiM) + "%";
-    xo = 8*TF_COLS;
-    TFDrawText (&display, lstr, xo, yo, lcc);
-    //-pressure
-    lstr = String (presM);
-    xo = 12*TF_COLS;
-    TFDrawText (&display, lstr, xo, yo, cc_blu);
-    //draw temp min/max
-    if (tempMin > -10000)
-    {
-      xo = 0*TF_COLS; yo = 26;
-      TFDrawText (&display, "   ", xo, yo, 0);
-      lstr = String (tempMin);// + String((*u_metric=='Y')?"C":"F");
-      //blue if negative
-      int ct = cc_dgr;
-      if (tempMin < 0)
-      {
-        ct = cc_blu;
-        lstr = String (-tempMin);// + String((*u_metric=='Y')?"C":"F");
-      }
-      Serial.print ("temp min: ");
-      Serial.println (lstr);
-      TFDrawText (&display, lstr, xo, yo, ct);
-    }
-    if (tempMax > -10000)
-    {
-      TFDrawText (&display, "   ", 13*TF_COLS, yo, 0);
-      //move the text to the right or left as needed
-      xo = 14*TF_COLS; yo = 26;
-      if (tempMax < 10)
-        xo = 15*TF_COLS;
-      if (tempMax > 99)
-        xo = 13*TF_COLS;
-      lstr = String (tempMax);// + String((*u_metric=='Y')?"C":"F");
-      //blue if negative
-      int ct = cc_dgr;
-      if (tempMax < 0)
-      {
-        ct = cc_blu;
-        lstr = String (-tempMax);// + String((*u_metric=='Y')?"C":"F");
-      }
-      Serial.print ("temp max: ");
-      Serial.println (lstr);
-      TFDrawText (&display, lstr, xo, yo, ct);
-    }
-    //weather conditions
-    draw_weather_conditions ();*/
+    /*draw_weather_conditions ();*/
   }
+
+}
+
+void ClockDisplay::show_temp(float temp, uint16_t x_offset, uint16_t y_offset){
+  uint16_t white = display.color565 (100, 100, 100);
+  uint16_t red = display.color565 (255, 0, 0);
+  uint16_t green = display.color565 (0, 255, 0);
+  uint16_t blue = display.color565 (0, 0, 255);
+  uint16_t dark_grey = display.color565 (30, 30, 30);
+
+  int rounded_temp = round(temp);
+
+  char temp_display[5]; 
+  sprintf(temp_display, "%iC", rounded_temp);
+  
+  uint16_t temp_colour = red;
+    
+  if (temp >= 18 && temp < 26)
+    temp_colour = green;
+  else if (temp >= 6 && temp < 18)
+    temp_colour = blue;
+  else if (temp < 6)
+    temp_colour = white;
+  
+  TFDrawText(&display, "    ", x_offset, y_offset, 0);
+  TFDrawText(&display, temp_display, x_offset, y_offset, temp_colour);
 }
