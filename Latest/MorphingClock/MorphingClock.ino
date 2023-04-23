@@ -24,7 +24,7 @@ int weather_refresh_interval_mins = 1; // TODO: move to config
 float weather_current_temp = -1000;
 float weather_max_temp = -1000;
 float weather_min_temp = -1000;
-float weather_feels_like = -1000;
+float weather_feels_like_temp = -1000;
 float weather_wind_speed = -1000; 
 int weather_cond__index = -1;  //-1 - undefined, 0 - unk, 1 - sunny, 2 - cloudy, 3 - overcast, 4 - rainy, 5 - thunders, 6 - snow
 
@@ -36,7 +36,7 @@ void setup() {
   ntp_client.Setup(&clock_display);
 
   get_weather();
-  clock_display.show_weather(weather_current_temp, weather_min_temp);
+  clock_display.show_weather(weather_current_temp, weather_min_temp, weather_max_temp, weather_feels_like_temp);
 }
 
 void loop() {
@@ -52,16 +52,16 @@ void loop() {
     bool is_military = ntp_client.GetIsMilitary();
 
     if (prev_epoch == 0){ // If we didn't have a previous time. Just draw it without morphing.
-      clock_display.showTime(current_hour, current_mins, current_seconds, is_pm, is_military);//Need to not hard code the 'false' here
+      clock_display.show_time(current_hour, current_mins, current_seconds, is_pm, is_military);//Need to not hard code the 'false' here
     }
     else{
       // epoch changes every miliseconds, we only want to draw when digits actually change.
-      clock_display.morphTime(current_hour, current_mins, current_seconds, is_pm, is_military);
+      clock_display.morph_time(current_hour, current_mins, current_seconds, is_pm, is_military);
     }
 
     if(current_seconds == 30 && (current_mins % weather_refresh_interval_mins == 0)){
       get_weather();
-      clock_display.show_weather(weather_current_temp, weather_min_temp);
+      clock_display.show_weather(weather_current_temp, weather_min_temp, weather_max_temp, weather_feels_like_temp);
     }
 
     prev_epoch = epoch;
@@ -127,7 +127,7 @@ void get_weather()
     weather_current_temp = weather_json[F("main")][F("temp")];
     weather_max_temp = weather_json[F("main")][F("temp_max")];
     weather_min_temp = weather_json[F("main")][F("temp_min")];
-    weather_feels_like = weather_json[F("main")][F("feels_like")];
+    weather_feels_like_temp = weather_json[F("main")][F("feels_like")];
     weather_wind_speed = weather_json[F("wind")][F("speed")];
 
     Serial.print(F("Weather: "));
@@ -139,7 +139,7 @@ void get_weather()
     Serial.print(F("Temp Min: "));
     Serial.println(weather_min_temp);
     Serial.print(F("Feels Like: "));
-    Serial.println(weather_feels_like);
+    Serial.println(weather_feels_like_temp);
     Serial.print(F("Wind Speed: "));
     Serial.println(weather_wind_speed);
   

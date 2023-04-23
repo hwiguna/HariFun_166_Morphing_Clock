@@ -144,19 +144,19 @@ void NTPClient::Setup(ClockDisplay* clockDisplay)
 
     Serial.println("Displaying Wifi Info");
 
-    clockDisplay->displayNetworkInfo(wifiManagerAPName, wifiManagerAPPassword, "192.168.4.1");
+    clockDisplay->display_network_info(wifiManagerAPName, wifiManagerAPPassword, "192.168.4.1");
 
     Serial.println("Starting Configuration Portal");
     wifiManager.startConfigPortal(wifiManagerAPName, wifiManagerAPPassword);
     
-    clockDisplay->clearDisplay();
+    clockDisplay->clear_display();
   } 
   else 
   {
     Serial.println("No Double Reset Detected");
     digitalWrite(LED_BUILTIN, HIGH);
 
-    clockDisplay->showText("Connecting");
+    clockDisplay->show_text("Connecting");
 
     //fetches ssid and pass from eeprom and tries to connect
     //if it does not connect it starts an access point with the specified name wifiManagerAPName
@@ -181,7 +181,7 @@ void NTPClient::Setup(ClockDisplay* clockDisplay)
   //-- Military --
   strcpy(military,militaryParameter.getValue());
   
-  clockDisplay->displayConfigInfo(timezone, military);
+  clockDisplay->display_config_info(timezone, military);
 
   if (shouldSaveConfig) {
     saveConfig();
