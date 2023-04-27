@@ -23,12 +23,12 @@ unsigned long prev_epoch;
 static const uint8_t weather_conditions_len = 50;
 
 int weather_refresh_interval_mins = 1; // TODO: move to config
-float weather_current_temp = -1000;
+/*float weather_current_temp = -1000;
 float weather_max_temp = -1000;
 float weather_min_temp = -1000;
 float weather_feels_like_temp = -1000;
 float weather_wind_speed = -1000; 
-char weather_conditions[weather_conditions_len];
+char weather_conditions[weather_conditions_len];*/
 
 
 
@@ -39,13 +39,24 @@ void setup() {
 
   ntp_client.Setup(&clock_display);
 
-  get_weather();
-  clock_display.show_weather(weather_current_temp, weather_min_temp, weather_max_temp, weather_feels_like_temp, weather_conditions);
+  //get_weather();
+  //clock_display.show_weather(weather_current_temp, weather_min_temp, weather_max_temp, weather_feels_like_temp, weather_conditions);
 }
 
 void loop() {
   unsigned long epoch = ntp_client.GetCurrentTime();
   
+  /*float weather_current_temp = -1000;
+  float weather_max_temp = -1000;
+  float weather_min_temp = -1000;
+  float weather_feels_like_temp = -1000;
+  float weather_wind_speed = -1000; 
+  char weather_conditions[weather_conditions_len];*/
+
+  /*Serial.print("Epoch ");
+  Serial.print(epoch);
+  Serial.print(" Previous Epoch ");
+  Serial.println(prev_epoch);*/
   if (epoch != 0) ntp_client.PrintTime();
 
   if (epoch != prev_epoch){
@@ -56,16 +67,17 @@ void loop() {
     bool is_military = ntp_client.GetIsMilitary();
 
     if (prev_epoch == 0){ // If we didn't have a previous time. Just draw it without morphing.
+      clock_display.clear_display();
       clock_display.show_time(current_hour, current_mins, current_seconds, is_pm, is_military);//Need to not hard code the 'false' here
     }
     else{
       // epoch changes every miliseconds, we only want to draw when digits actually change.
-      clock_display.morph_time(0, current_mins, current_seconds, is_pm, is_military);
+      clock_display.morph_time(current_hour, current_mins, current_seconds, is_pm, is_military);
     }
 
-    if(current_seconds == 30 && (current_mins % weather_refresh_interval_mins == 0)){
-      get_weather();
-      clock_display.show_weather(weather_current_temp, weather_min_temp, weather_max_temp, weather_feels_like_temp, weather_conditions);
+    if(prev_epoch == 0 || (current_seconds == 30 && (current_mins % weather_refresh_interval_mins == 0))){
+      show_weather();
+      //clock_display.show_weather(weather_current_temp, weather_min_temp, weather_max_temp, weather_feels_like_temp, weather_conditions);
     }
 
     //weather animations
@@ -92,7 +104,7 @@ WiFiClient client;
 
 String condS = "";
 
-void get_weather()
+void show_weather()
 {
   Serial.print("getWeather: Connecting to weather server ");
   Serial.println(weather_server);
@@ -140,15 +152,16 @@ void get_weather()
 
 //TODO: may want to make sure that the values are there - could crash
 
-    const char *weather_conditions_temp = weather_json[F("weather")][0][F("main")];
-    strncpy(weather_conditions, weather_conditions_temp, weather_conditions_len);
-    
-    weather_current_temp = weather_json[F("main")][F("temp")];
-    weather_max_temp = weather_json[F("main")][F("temp_max")];
-    weather_min_temp = weather_json[F("main")][F("temp_min")];
-    weather_feels_like_temp = weather_json[F("main")][F("feels_like")];
-    weather_wind_speed = weather_json[F("wind")][F("speed")];
+    float weather_current_temp = weather_json[F("main")][F("temp")];
+    float weather_max_temp = weather_json[F("main")][F("temp_max")];
+    float weather_min_temp = weather_json[F("main")][F("temp_min")];
+    float weather_feels_like_temp = weather_json[F("main")][F("feels_like")];
+    float weather_wind_speed = weather_json[F("wind")][F("speed")];
+    const char *weather_conditions = weather_json[F("weather")][0][F("main")];
 
+    //const char *weather_conditions_temp = weather_json[F("weather")][0][F("main")];
+    //strncpy(weather_conditions, weather_conditions_temp, weather_conditions_len);
+    
     Serial.print(F("Weather: "));
     Serial.println(weather_conditions);
     Serial.print(F("Temp: "));
@@ -161,7 +174,10 @@ void get_weather()
     Serial.println(weather_feels_like_temp);
     Serial.print(F("Wind Speed: "));
     Serial.println(weather_wind_speed);
+
+    clock_display.show_weather(weather_current_temp, weather_min_temp, weather_max_temp, weather_feels_like_temp, weather_conditions);
   }
+
 }
 
 

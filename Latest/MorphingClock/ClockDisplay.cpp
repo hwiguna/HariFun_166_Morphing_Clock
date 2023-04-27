@@ -157,7 +157,7 @@ void ClockDisplay::show_ampm(bool is_pm){
   }
 }
 
-void ClockDisplay::show_weather(float current_temp, float min_temp, float max_temp, float feels_like_temp, char *conditions){
+void ClockDisplay::show_weather(float current_temp, float min_temp, float max_temp, float feels_like_temp, const char *conditions){
 
   Serial.print(F("showing the weather "));
   Serial.print(current_temp);
@@ -445,7 +445,7 @@ int *mony_ani[] = {moony_ico, moony_ico, moony_ico, moony_ico, moony_ico};
 int xo = 1, yo = 26;
 char daytime = 1;
 
-void ClockDisplay::draw_weather_conditions(char *conditions){
+void ClockDisplay::draw_weather_conditions(const char *conditions){
   Serial.print(F("Weather conditions "));
   Serial.println(conditions);
   
