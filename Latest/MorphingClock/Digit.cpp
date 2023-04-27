@@ -76,31 +76,49 @@ void Digit::draw_colon(uint16_t c)
   draw_fill_rect(-3, seg_height+1+3, 2,2, c);
 }
 
-void Digit::draw_seg(byte seg)
-{
+void Digit::draw_seg(byte seg, uint16_t seg_colour){
+
+  Serial.print("Drawing segment ");
+  Serial.print(seg);
+  Serial.println(seg_colour);
   switch (seg) {
     case sA: 
-      draw_line(1, seg_height * 2 + 2, seg_width, seg_height * 2 + 2, colour); 
+      draw_line(1, seg_height * 2 + 2, seg_width, seg_height * 2 + 2, seg_colour); 
       break;
     case sB: 
-      draw_line(seg_width + 1, seg_height * 2 + 1, seg_width + 1, seg_height + 2, colour); 
+      draw_line(seg_width + 1, seg_height * 2 + 1, seg_width + 1, seg_height + 2, seg_colour); 
       break;
     case sC: 
-      draw_line(seg_width + 1, 1, seg_width + 1, seg_height, colour); 
+      draw_line(seg_width + 1, 1, seg_width + 1, seg_height, seg_colour); 
       break;
     case sD: 
-      draw_line(1, 0, seg_width, 0, colour); 
+      draw_line(1, 0, seg_width, 0, seg_colour); 
       break;
     case sE: 
-      draw_line(0, 1, 0, seg_height, colour); 
+      draw_line(0, 1, 0, seg_height, seg_colour); 
       break;
     case sF: 
-      draw_line(0, seg_height * 2 + 1, 0, seg_height + 2, colour); 
+      draw_line(0, seg_height * 2 + 1, 0, seg_height + 2, seg_colour); 
       break;
     case sG: 
-      draw_line(1, seg_height + 1, seg_width, seg_height + 1, colour); 
+      draw_line(1, seg_height + 1, seg_width, seg_height + 1, seg_colour); 
       break;
   }
+}
+
+void Digit::draw_seg(byte seg)
+{
+  draw_seg(seg, colour);
+}
+
+void Digit::clear() {
+  draw_seg(sA, 0);
+  draw_seg(sB, 0);
+  draw_seg(sC, 0);
+  draw_seg(sD, 0);
+  draw_seg(sE, 0);
+  draw_seg(sF, 0);
+  draw_seg(sG, 0);
 }
 
 void Digit::draw(byte value) {

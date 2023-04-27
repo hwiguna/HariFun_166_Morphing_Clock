@@ -28,5 +28,7 @@ class ClockDisplay{
     void show_ampm(bool is_pm); 
     void show_temp(float temp_display, uint16_t x_offset, uint16_t y_offset);
     void draw_weather_conditions(char *conditions);
+    uint8_t get_right_offset(float temp);
+    void clear_time();
 };
 #endif

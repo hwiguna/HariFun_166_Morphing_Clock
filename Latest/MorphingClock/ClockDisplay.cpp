@@ -17,18 +17,19 @@ Ticker display_ticker;
 // Pins for LED MATRIX
 PxMATRIX display(64, 32, 16, 2, 5, 4, 15, 12, 0);
 
-static const uint16_t white = display.color565 (25, 25, 25);
-static const uint16_t red = display.color565 (25, 0, 0);
-static const uint16_t orange = display.color565 (25, 16, 0);   
-static const uint16_t green = display.color565 (0, 50, 0);
-static const uint16_t blue = display.color565 (0, 13, 25);
-static const uint16_t light_blue = display.color565 (0, 130, 155);
-static const uint16_t grey = display.color565 (20, 20, 20);  
-static const uint16_t dark_grey = display.color565 (40, 40, 40);
+static const uint16_t white = display.color565(25, 25, 25);
+static const uint16_t red = display.color565(40, 0, 0);
+static const uint16_t pink = display.color565(98, 10, 17);//(196, 2, 34);//(288, 0, 123);
+static const uint16_t orange = display.color565(186, 22, 12);
+static const uint16_t green = display.color565(0, 50, 0);
+static const uint16_t blue = display.color565(0, 13, 25);
+static const uint16_t light_blue = display.color565(16, 52, 155);
+static const uint16_t grey = display.color565(20, 20, 20);  
+static const uint16_t dark_grey = display.color565(40, 40, 40);
 static const uint16_t cyan = display.color565(0, 25, 25);
 static const uint16_t black = display.color565(0, 0, 0);
-static const uint16_t yellow = display.color565 (25, 25, 0);  
-static const uint16_t purple = display.color565 (25, 0, 25);   
+static const uint16_t yellow = display.color565(25, 25, 0);  
+static const uint16_t purple = display.color565(25, 0, 25);   
 
 bool use_ani = true;
 
@@ -38,18 +39,17 @@ ClockDisplay::ClockDisplay(){
 
   display.begin(16);
 
-  digit_0 = Digit(&display, 0, 63 - 16*1, 14, true, time_colour);
-  digit_1 = Digit(&display, 0, 63 - 11*2, 14, true, time_colour);
-  digit_2 = Digit(&display, 0, 63 - 4 - 9*3, 8, false, time_colour);
-  digit_3 = Digit(&display, 0, 63 - 4 - 9*4, 8, false, time_colour);
-  digit_4 = Digit(&display, 0, 63 - 7 - 9*5, 8, false, time_colour);
-  digit_5 = Digit(&display, 0, 63 - 7 - 9*6, 8, false, time_colour);
+  digit_0 = Digit(&display, 0, 52, 14, true, time_colour);
+  digit_1 = Digit(&display, 0, 46, 14, true, time_colour);
+  digit_2 = Digit(&display, 0, 37, 8, false, time_colour);
+  digit_3 = Digit(&display, 0, 28, 8, false, time_colour);
+  digit_4 = Digit(&display, 0, 16, 8, false, time_colour);
+  digit_5 = Digit(&display, 0, 7, 8, false, time_colour);
 
   display_ticker.attach_ms(2, [](PxMATRIX *display_to_use) {
     display_to_use->display(70);
   }, &display);
   
-  //clear_display();
   display.setTextColor(time_colour);
 }
 
@@ -94,6 +94,15 @@ void ClockDisplay::clear_display(){
   display.fillScreen(display.color565(0, 0, 0));
 }
 
+void ClockDisplay::clear_time(){
+  digit_0.clear();
+  digit_1.clear();
+  digit_2.clear();
+  digit_3.clear();
+  digit_4.clear();
+  digit_5.clear();
+}
+
 void ClockDisplay::show_text(const char *text){
   clear_display();
   display.setCursor(2, row_0);
@@ -102,6 +111,7 @@ void ClockDisplay::show_text(const char *text){
 
 void ClockDisplay::show_time(int hh, int mm, int ss, bool is_pm, bool military){
   clear_display();
+
   digit_0.draw(ss % 10);
   digit_1.draw(ss / 10);
   digit_2.draw(mm % 10);
@@ -140,10 +150,10 @@ void ClockDisplay::morph_time(int hh, int mm, int ss, bool is_pm, bool military)
 
 void ClockDisplay::show_ampm(bool is_pm){
   if (is_pm){
-    TFDrawText (&display, F("PM"), 44, 19, time_colour);
+    TFDrawText (&display, F("PM"), 49, 19, time_colour);
   }
   else{
-    TFDrawText (&display, F("AM"), 44, 19, time_colour);
+    TFDrawText (&display, F("AM"), 49, 19, time_colour);
   }
 }
 
@@ -167,13 +177,29 @@ void ClockDisplay::show_weather(float current_temp, float min_temp, float max_te
   else
   {
     show_temp(current_temp, 0, 1); //top left
-    show_temp(feels_like_temp, 55, 1); // top right
+
+    uint8_t x_offset = get_right_offset(feels_like_temp);
+
+    show_temp(feels_like_temp, x_offset, 1); // top right
+
     show_temp(min_temp, 0, 26); // bottom left
-    show_temp(max_temp, 55, 26); // bottom right
+
+    x_offset = get_right_offset(max_temp);
+    show_temp(max_temp, x_offset, 26); // bottom right
 
     //weather conditions
     draw_weather_conditions(conditions);
   }
+}
+
+uint8_t ClockDisplay::get_right_offset(float temp){
+  uint8_t x_offset = 55;
+
+  if (temp >= 10){
+      x_offset = 51;
+  }
+
+  return x_offset;
 }
 
 void ClockDisplay::show_temp(float temp, uint16_t x_offset, uint16_t y_offset){
@@ -185,9 +211,9 @@ void ClockDisplay::show_temp(float temp, uint16_t x_offset, uint16_t y_offset){
   uint16_t temp_colour = red;
     
   if (temp >= 18 && temp < 26)
-    temp_colour = green;
+    temp_colour = orange;
   else if (temp >= 6 && temp < 18)
-    temp_colour = blue;
+    temp_colour = light_blue;
   else if (temp < 6)
     temp_colour = white;
   
@@ -232,7 +258,7 @@ int sunny_ico[50] = {
   0x0000, 0x0000, 0x0000, yellow, 0x0000, 0x0000, yellow, 0x0000, 0x0000, 0x0000,
   0x0000, yellow, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, yellow, 0x0000,
   0x0000, 0x0000, 0x0000, yellow, yellow, yellow, yellow, 0x0000, 0x0000, 0x0000,
-  yellow, 0x0000, yellow, yellow, yellow, yellow, yellow, 0xffe0, 0x0000, yellow,
+  yellow, 0x0000, yellow, yellow, yellow, yellow, yellow, yellow, 0x0000, yellow,
   0x0000, 0x0000, yellow, yellow, yellow, yellow, yellow, yellow, 0x0000, 0x0000,
 };
 
@@ -423,14 +449,13 @@ void ClockDisplay::draw_weather_conditions(char *conditions){
   Serial.print(F("Weather conditions "));
   Serial.println(conditions);
   
-  Serial.print("What colour is this? ");
-  Serial.println(grey);
-
   //cleanup previous cond
-  xo = 3*TF_COLS; yo = 1;
+  xo = 27; 
+  yo = 1;
+  
   TFDrawText(&display, F("     "), xo, yo, 0);
   
-  xo = 4*TF_COLS; yo = 1;
+  //xo = 4*TF_COLS; yo = 1;
 
   int *conditions_icon = NULL;
 
@@ -464,50 +489,50 @@ void ClockDisplay::draw_weather_conditions(char *conditions){
     Serial.println(F("draw_weather_conditions: !weather condition icon unknown, show text "));
     
     TFDrawText (&display,"     ", xo, yo, 0);
-    TFDrawText (&display, conditions, xo, yo, dark_grey);
+    TFDrawText (&display, conditions, 27, yo, dark_grey);
   }
 
   if (conditions_icon != NULL){
-    draw_icon(&display, conditions_icon, xo, yo, 10, 5);
+    draw_icon(&display, conditions_icon, 27, yo, 10, 5);
   }
 }
 
 void draw_animations(char *conditions, int stp){
 //#ifdef USE_ICONS
   //weather icon animation
-  int xo = 4*TF_COLS; 
+  int xo = 27; 
   int yo = 1;
   
   if (use_ani)
   {
-    int *af = NULL;
+    int *weather_icon = NULL;
     
     if(!strncmp(conditions, "Clear", strlen(conditions))){
       if (!daytime)
-        af = mony_ani[stp%5];
+        weather_icon = mony_ani[stp%5];
       else
-        af = suny_ani[stp%5];
+        weather_icon = suny_ani[stp%5];
     }
     else if(!strncmp(conditions, "Clouds", strlen(conditions))){
-      af = clod_ani[stp%5];
+      weather_icon = clod_ani[stp%5];
     }
     else if(!strncmp(conditions, "Overcast", strlen(conditions))){
-      af = ovct_ani[stp%5];
+      weather_icon = ovct_ani[stp%5];
     }
     else if(!strncmp(conditions, "Rain", strlen(conditions)) || 
             !strncmp(conditions, "Drizzle", strlen(conditions))){
-      af = rain_ani[stp%5];
+      weather_icon = rain_ani[stp%5];
     }
     else if(!strncmp(conditions, "Thunderstorm", strlen(conditions))){
-      af = thun_ani[stp%5];
+      weather_icon = thun_ani[stp%5];
     }
     else if(!strncmp(conditions, "Snow", strlen(conditions))){
-      af = snow_ani[stp%5];
+      weather_icon = snow_ani[stp%5];
     }
   
     //draw animation
-    if (af)
-      draw_icon(&display, af, xo, yo, 10, 5);
+    if (weather_icon)
+      draw_icon(&display, weather_icon, xo, yo, 10, 5);
   }
 //#endif
 }

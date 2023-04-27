@@ -60,7 +60,7 @@ void loop() {
     }
     else{
       // epoch changes every miliseconds, we only want to draw when digits actually change.
-      clock_display.morph_time(current_hour, current_mins, current_seconds, is_pm, is_military);
+      clock_display.morph_time(0, current_mins, current_seconds, is_pm, is_military);
     }
 
     if(current_seconds == 30 && (current_mins % weather_refresh_interval_mins == 0)){
